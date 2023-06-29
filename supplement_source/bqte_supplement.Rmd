@@ -1,0 +1,1309 @@
+---
+title: 'Supplementary material of "Estimating quantile treatment effect on the original scale of the outcome variable: a case study of common cold treatments"' 
+author: | 
+ | Harri Hemilä and Matti Pirinen 
+ | University of Helsinki
+output:
+  pdf_document: default
+  html_document: default
+date: "2023-06-28"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("bqte_functions.R")
+```
+
+
+# 1. Interpretation of BQTE
+
+Back-transformed quantile treatment effect (BQTE) is a function that describes
+the difference between the distributions of outcome values of two populations.
+We will call the two populations that we compare 
+as the **treatment** population and the **control** population, 
+motivated by the need to compare how
+a particular treatment affects the outcome value in a randomized controlled trial (RCT).
+In an RCT, the study sample is randomly split into the treatment group (that represents
+the treatment population) and the control group (that represents the control population).
+The treatment of interest is applied to the treatment group and placebo is applied
+to the control group. The possible difference in the outcome distributions between
+the treatment group and the control group is interpreted as the population-level treatment effect.
+We will use the BQTE function to quantify this 
+difference between the two populations.
+
+For any possible outcome value $x$, the theoretical value of $\text{BQTE}(x)$ is defined as follows:
+
+ 1. Find which proportion of the control population has outcome values $\leq x$. Call this
+ proportion $F(x)$.
+ 
+ 2. Find what is the corresponding outcome value $x^*$ in the treatment population for which
+ the proportion of the treatment population having outcome values $\leq x^*$ is the same $F(x)$.
+
+ 3. Define $\text{BQTE}(x) = x^* - x.$
+ 
+Thus, $\text{BQTE}$ describes the difference between the outcome value
+of the treatment population and the control population when this comparison
+is done between treated and control individuals whose outcome values
+rank similarly among their respective populations.
+As the value of BQTE may vary across outcome values, we present $\text{BQTE}$ as 
+a function of outcome value $x$ in the control group.
+
+Mathematically,
+$$\text{BQTE}(x) = {F^*}^{-1}\left(F(x)\right) -x,$$
+where $F$ and $F^{*}$ are the cumulative distribution functions of the outcome values of the
+control and treatment populations, respectively, and ${F^*}^{-1}$ is the inverse function of ${F^*}$. 
+
+The difference in the means of the populations, called the **average treatment effect** (ATE), 
+is the most common approach to assess the effect of the treatment at the population level.
+However, the BQTE function measures the difference between the two populations in 
+a more detailed way than the single value of ATE. 
+For example, if we observe that BQTE is not constant across the outcome values, then we can conclude that
+the individual-level treatment effect (see below for definition) cannot be constant across individuals.
+Or, if the relative BQTE (defined as $\text{BQTE}(x)/x$) is not constant, then we know that
+the individual-level treatment effect cannot be proportional to the untreated 
+outcome value by a single constant.
+Neither of these pieces of information can be inferred from the value of the ATE alone.
+Next we consider what additional information we can extract from the BQTE function.
+
+
+### 1.1. When does BQTE estimate an individual-level treatment effect?
+
+We define two instances of the concept of **treatment effect**.
+A **population-level treatment effect** is the difference
+between the outcome distributions of the treatment and control populations and it can be
+estimated from RCT data by different approaches such as by ATE or BQTE which contain different
+levels of information about the population-level treatment effect.
+Instead, an **individual-level treatment effect** is a theoretical construction
+that cannot, in general, be estimated from an RCT without some additional assumptions. 
+To formally define the individual-level treatment effect,
+we follow the framework of the potential outcomes by Rubin 
+(1974; Journal of Educational Psychology, 66(5), 688–701).
+Suppose that we have not yet carried out the experiment. 
+For any individual $i$, we can imagine two potential outcome variables:
+
+ * $X_i$ would be the outcome variable if individual $i$ belonged to the control population,
+ * $X_i^{*}$ would be the outcome variable if individual $i$ belonged to the treatment population.
+
+Before the experiment, we consider both $X_i$ and $X_i^{*}$ as random variables and 
+their difference, $T_i = X_i^{*} - X_i$, defines a random variable that 
+represents the theoretical treatment effect for individual $i$. 
+Once we do the experiment, we will observe a value for either
+$X_i$ (if $i$ was assigned to the control group) or $X_i^{*}$ 
+(if $i$ was assigned to the treatment group) but never for both $X_i$ and $X_i^{*}$ simultaneously.
+Thus, the experiment does not provide a direct way to estimate the treatment 
+effect $T_i$ of individual $i$. 
+Note that from now on, we will refer by the random variables $X$ and $X^*$
+to the untreated and treated potential outcomes of the *same* individual
+even when we do not specify that same individual by using a common subscript as above.
+
+To conceptually connect BQTE, that quantifies the population-level treatment effect, 
+to the individual-level treatment effects, 
+we will consider the concept of order-preserving treatments.
+
+ **Definition.** We say that a **treatment preserves order** (or that the **treatment
+ is order-preserving**) if the untreated outcome values 
+ of a set of individuals have, on average, the same relative order as the
+ treated outcome values of the same set of individuals would have had, 
+ if these individuals had been treated. 
+ Formally, we define that the treatment preserves order when, for every outcome value $x$,
+ $F^*\left(\text{E}(X^*\,|\,X=x)\right) = F(x)$.
+ 
+For example, consider a trial where the outcome is the duration of the common cold, 
+the treatment group is treated with zinc acetate lozenges and the 
+control group is given placebo. 
+The assumption that the treatment preserves order
+means that the durations of the colds of the control individuals 
+would have had approximately the same relative order if those individuals had been 
+treated with zinc acetate lozenges rather than given placebo. 
+
+While, based on RCT data, we cannot directly confirm that a treatment preserves order,
+we can make the following remarks. 
+
+ * First, the assumption that the treatment preserves order seems more plausible the more
+homogeneous the individuals in the study population are, because within a homogeneous
+population there are less differences between the individuals that could affect 
+how the treatment applies to each individual. 
+Thus, for example, the assumption of order-preserving treatment seems more plausible 
+in an RCT that studies females between 40-45 years of age
+than in another RCT that studies both males and females between 18-80 years of age.
+
+ * Second, in case that some covariate information were available on the individuals included
+in the RCT (such as sex, age, medication, disease history etc.),
+then we would expect that under an order-preserving treatment
+the way how the covariates predict the outcome values would be 
+similar in the treatment population as it is in the control population.
+For example, if male individuals tend to have longer disease duration than female individuals
+in the control group,
+then the same should be true in the treatment group if the treatment preserves order.
+If, on the other hand, we observe that the covariates such as sex do not predict
+the disease duration consistently in both the control and the treatment populations, 
+then the assumption of order-preserving treatment may not be appropriate. 
+Note that the treatment could preserve order in a subpopulation (such as in males only)
+even if it did not preserve order in a larger population (such as in both sexes together).
+
+The connection between the order-preserving treatments and the individual-level treatment effects
+can be formulated as follows:
+**BQTE can be interpreted as
+the expected value of the individual-level treatment effect if and only if
+the treatment preserves order.**
+
+To justify the claim, consider a treatment that preserves order, that is, 
+$F^*\left(\text{E}(X^*\,|\,X=x)\right) = F(x)$ for all $x$.
+By applying ${F^*}^{-1}$ on both sides of the equation we get 
+$$\text{E}(X^*\,|\,X=x) = {F^*}^{-1}\left(F(x)\right)$$
+and since by definition $\text{BQTE}(x) = {F^*}^{-1}(F(x)) -x$ it follows that 
+$$\text{BQTE}(x) = \text{E}(X^*\,|\, X = x) - x = \text{E}(X^* -X\,|\, X=x).$$
+Thus, BQTE is the conditional expectation of the individual-level treatment effect and
+we can interpret BQTE as an estimator of the individual-level treatment effect.
+
+On the other hand, suppose that the treatment does not preserve order.
+Then there exists some outcome value $x$ in the control population 
+whose quantile level $F(x)$ does not remain constant under the treatment:
+${F^*}\left(\text{E}(X^*\,|\, X = x)\right) \neq F(x).$
+By applying ${F^*}^{-1}$ on both sides of this inequality, and following the steps
+above, we see that
+$$\text{BQTE}(x) \neq \text{E}(X^*\,|\, X = x) - x = \text{E}(X^* - X\,|\, X = x).$$
+Thus, if the treatment does not preserve order, 
+$\text{BQTE}(x)$ does not match with the conditional expectation of the 
+individual-level treatment effect.
+
+Theoretically, BQTE can be interpreted as the expected value of the individual-level 
+treatment effect if and only if the treatment preserves order.
+Unfortunately, there is no general way to verify whether a 
+given treatment preserves order based on RCT data.
+However, we can extract useful information about the individual-level 
+treatment effects from the BQTE function even 
+without an assumption about the preservation of order.
+
+### 1.2 Bounds on the individual-level treatment effect 
+
+In this section, we compute upper and lower bounds on the individual-level treatment effect
+and further extend these bounds to the average treatment effect in the tails of the distribution.
+
+Consider a treatment that does not necessarily preserve order. 
+Let us denote the range of the possible value of the treatment population by 
+$(L^*,U^*)$, where $L^*$ and $U^*$ refer, respectively, 
+to the lower and upper bounds of the treatment population. 
+We use the following estimators for these bounds: 
+\begin{eqnarray*}
+\widehat{L^*} &=& \min\{x^* \text{ of the treatment group}\}, \\
+\widehat{U^*} &=& \max\{x^* \text{ of the treatment group}\},
+\end{eqnarray*}
+that is, we use the observed minimum and maximum of the outcome values
+of the treatment group as the estimates of $L^*$ and $U^*$, respectively.
+This leads to an estimated lower bound of $\widehat{L^*} - x$ and an estimated 
+upper bound of $\widehat{U^*} - x$ for the treatment effect
+of an untreated individual with an outcome value $X = x$.
+The logic is that since we expect that (almost) all outcome values in the treatment
+population are within the interval $\left[\widehat{L^*}, \widehat{U^*}\right]$, 
+we expect that the treatment effect 
+at $X = x$ is (almost always) bounded within $\left[\widehat{L^*} - x, \widehat{U^*} - x\right]$.
+The accuracy of these bounds increases with the sample size of the treatment group
+and decreases with increasing kurtosis (fatness of the tails) of the outcome distribution of
+the treatment population.
+
+We can extend the idea of the bounds to the average treatment effect of 
+the upper or lower tail as follows.
+For the outcome value $x$, 
+define the **lower tail average treatment effect (LTATE)** as
+$$\text{LTATE}(x) = \text{E}\left(X^* \,|\, X \leq x \right) - \text{E}\left(X \,|\, X \leq x \right).$$
+and the **upper tail average treatment effect (UTATE)** as
+$$\text{UTATE}(x) = \text{E}\left(X^* \,|\, X \geq x \right) - \text{E}\left(X \,|\, X \geq x \right).$$
+While we cannot directly estimate these quantities for a general treatment, we can get
+a lower bound for LTATE by
+**lower tail back-transformed quantile treatment effect (LTBQTE)** and 
+an upper bound for UTATE by 
+**upper tail back-transformed quantile treatment effect (UTBQTE)**:
+\begin{eqnarray*}
+\text{LTBQTE}(x) &=& \text{E}\left(X^* \,|\, X^* \leq {F^*}^{-1}(F(x)) \right) - \text{E}\left(X \,|\, X \leq x \right)\\
+\text{UTBQTE}(x) &=& \text{E}\left(X^* \,|\, X^* \geq {F^*}^{-1}(F(x)) \right) - \text{E}\left(X \,|\, X \geq x \right).
+\end{eqnarray*}
+
+Thus, LTBQTE (UTBQTE) is the difference in the averages of the treatment and control populations when
+the average is computed for the same proportion of the populations from the lower (upper) tail.
+Note that LTBQTE($x$) approaches ATE as $x$ gets large while UTBQTE($x$) approaches ATE as $x$ gets small.
+Simple estimators to estimate $\text{LTBQTE}(x)$ and 
+$\text{UTBQTE}(x)$ result by replacing the expectations by the 
+numerical averages.
+
+For these quantities, the following relations apply: 
+$$\text{LTATE}(x) \geq \text{LTBQTE}(x) \quad \text{ and } \quad \text{UTATE}(x) \leq \text{UTBQTE}(x).$$
+
+To verify the argument, let us consider the first inequality. 
+We will show that $\text{LTATE}(x)  \geq \text{LTBQTE}(x),$ which equals to showing that
+$$\text{E}\left(X^* \,|\, X \leq x \right) \geq \text{E}\left(X^* \,|\, X^* \leq {F^*}^{-1}(F(x)) \right).$$
+
+Both quantities in the above inequality are integrals in the marginal space of random variable $X^*$.
+The left-hand side is over the event $A =\{X \leq x\}$ and the right-hand side is over the event
+$A^* = \{X^* \leq {F^*}^{-1}(F(x))\}$. 
+Let $\mu$ be the underlying probability measure
+of the two-dimensional random variable $(X,X^*)$. 
+By definition of the marginal CDFs $F$ of $X$ and $F^*$ of $X^*$, both events have the same 
+probability $\mu(A) = \mu(A^*) = F(x).$ 
+Intuitively, among all events with the same 
+probability, the event $A^*$ is the one with the smallest expected value of $X^*$.
+To formally prove this, note that for all $\omega \in A \backslash A^*$, 
+$X^*(\omega) > {F^*}^{-1}(F(x))$ and hence
+\begin{eqnarray*}
+\text{E}\left(X^* \,|\, X \leq x \right) &=& \int_{A}x^*d\mu(x^*) \\
+&=& \int_{A\cap A^*}x^*d\mu(x^*) +  \int_{A\backslash A^*}x^*d\mu(x^*) \\
+&\geq& \int_{A\cap A^*}x^*d\mu(x^*) +  \mu(A \backslash A^*) \cdot {F^*}^{-1}(F(x)) \\
+&=& \int_{A\cap A^*}x^*d\mu(x^*) +  \mu(A^* \backslash A) \cdot {F^*}^{-1}(F(x)) \\
+&\geq& \int_{A\cap A^*}x^*d\mu(x^*) + \int_{A^*\backslash A}x^*d\mu(x^*) \\
+&=& \int_{A^*}x^*d\mu(x^*)\\
+&=&\text{E}\left(X^* \,|\, X^* \leq {F^*}^{-1}(F(x)) \right).
+\end{eqnarray*}
+
+As a conclusion, we have shown that LTBQTE cannot overestimate the average
+treatment effect in the lower tail.
+
+The condition $\text{UTATE}(x) \leq \text{UTBQTE}(x)$ can be verified similarly.
+
+
+### 1.3. Variance of the individual-level treatment effect
+
+In this section, we consider how much the individual-level treatment effect
+varies across the individuals and how that variance depends on the assumption
+of order-preserving treatment. For that, we write the variance
+of the individual-level treatment effect $X^* - X$ in terms of 
+correlation $r = \text{cor}(X^*,X)$ and variance $v = \text{var}(X)$ of the untreated population
+and $v^* = \text{var}(X^*)$ of the treated population as follows
+\begin{eqnarray*}
+\text{var}(X^*-X) &=& v + v^* - 2\,\text{cov}(X^*,X)\\
+&=& v + v^* - 2\,r\, \sqrt{v\,v^*}.
+\end{eqnarray*}
+Thus, the variance of the treatment effect is the smallest possible when $r=1$,
+in which case the treatment preserves order, and is the largest possible when 
+$r=-1$, in which case the treatment completely flips the order around.
+
+We conclude that the order-preserving treatment with
+a linear relationship between the treated and untreated outcome values
+is the most conservative example of treatment in the sense of
+minimizing the variance of the treatment effect in the population.
+
+
+
+# 2. Testing the `bqte( )` function to back-transform quantile treatment effect
+
+Let's test `bqte()` function by generating data for the treatment ($T$) group
+and the control ($C$) group.
+
+**Continuous case.** For a given choice of continuous distributions, we can compute the exact 
+BQTE for each possible outcome value in controls by first using
+cumulative density function (CDF) in controls to get a correct tail probability 
+in the control distribution
+and then applying the quantile function (inverse of CDF) in the treatment group 
+to get the corresponding outcome value in that group. 
+Difference between the two outcome values is the exact BQTE.
+
+**Discrete case.** For discrete distributions, the simulation setting is slightly more complex.
+There, each possible outcome value in controls corresponds to a probability mass 
+which in turn corresponds to a probability interval in CDF. 
+When this interval is mapped by the inverse of CDF in the treatment group, 
+the result contains possibly multiple outcome values in the treatment group.
+To get the exact BQTE, we compute the expectation of the outcome value in the treatment group conditional 
+on the event that corresponds to the particular interval of CDF. 
+The difference between this expectation and the outcome value in the controls
+is then the exact BQTE.
+
+We apply three estimators of BQTE. The first two are versions of the estimator
+presented in our main text and the third was defined by Doksum (1974).
+
+ 1. **Bagging estimator** that equals to the average of the BQTE estimates
+ across the bootstrap samples. This is our default estimator and it is shown in Figures
+ unless otherwise stated in the Figure caption.
+ The motivation for bootstrap averaging ("bagging") is that it can reduce variance of the
+ estimator in some contexts, see Fig. S4.
+
+ 2. **Direct estimator** where we apply our BQTE estimator to the original data 
+ and not to the bootstrapped samples as in bagging. (In `bqte()`, this estimator
+ can be chosen by setting `bagging = FALSE`.)
+ 
+ 3. **Doksum estimator** defined as $\widehat{\Delta}(x) = y_{i(x)} - x$ where index
+ $i(x) = \left\lfloor n\,\widehat{F}(x)\right\rfloor + 1$ with $\widehat{F}$ being the empirical
+ cumulative distribution function of the control group, $n$ the sample size of
+ the treatment group and $y_i$ the value in the treatment group having rank $i$.
+
+### 2.1 Generating continuous example data
+
+To study the continuous case, let's assume 
+$$T\sim \text{Weibull}(1.2,2) \text{ and } C \sim \text{Weibull}(3,5).$$ 
+Figure S1 demonstrates this setting and shows the estimates of 
+treatment effect from `bqte()` function.
+
+```{r, echo = FALSE}
+T.a = 1.2
+T.b = 2
+C.a = 3
+C.b = 5
+eval.Fig2 = FALSE # Simulations take time -- set FALSE to read results from a file
+Fig2.filename = "bqte_simulations_1.2_2_3_5_N50_500.Rdata"
+eval.Fig3 = FALSE # Simulations take time -- set FALSE to read results from a file
+Fig3.filename = "bqte_simulations_1.2_2_3_5_N50_500_Kcoeff.Rdata" 
+eval.Fig4 = FALSE # set FALSE to read results from a file
+Fig4.filename = "bqte_simulations_Mossad_100iter.Rdata" 
+```
+
+```{r, fig.width = 9, fig,height = 8, echo = F}
+x = seq(0.001, 10, 0.01)
+par(mfrow = c(1,2))
+
+#PANEL A
+plot(x, dweibull(x, T.a, T.b), t = "l", col = "orange", lwd = 1.5, 
+     xlab = "outcome", ylab = "density", ylim = c(0, 0.45), lty = 2)
+grid()
+lines(x, dweibull(x, C.a, C.b), col = "dodgerblue", lwd = 1.5)
+legend("topright", col = c("orange", "dodgerblue"), 
+       leg = c("treatment", "control"), lwd = 1.5, lty = c(2,1))
+text(x = par("usr")[1] - 2, y = par("usr")[4] + 0.05,
+     labels = c("A."), xpd = NA, cex = 2)
+
+#PANEL B
+x = qweibull(seq(0.001, 0.999, 0.001), C.a, C.b)
+y = qweibull(seq(0.001, 0.999, 0.001), T.a, T.b) - x
+plot(x, y, t = "l", lty = 1, lwd = 2, col = "limegreen", 
+     xlab = "outcome in controls",
+     ylab = "BQTE",
+     xlim = c(0, 10), ylim = c(-3.5, 0))
+grid()
+set.seed(19)
+N = 500
+Trt = rweibull(N, T.a, T.b)
+Con = rweibull(N, C.a, C.b)
+res.bqte = bqte(Treatment = Trt, Control = Con, verbose = FALSE)
+points(res.bqte$at, res.bqte$bqte, col = "navyblue", pch = 19)
+arrows(res.bqte$at, res.bqte$bqte.low, res.bqte$at, res.bqte$bqte.up, 
+       col = "navyblue", length = 0, code = 3)
+legend("topright", col = c("limegreen","navyblue"), 
+       lty = c(1,1), pch = c(NA,19),
+       leg = c("exact","estimate (95%CI)"), lwd = 1.5)
+text(x = par("usr")[1] - 2, y = par("usr")[4] + 0.4,
+     labels = c("B."),xpd = NA, cex = 2)
+```
+
+**Figure S1.** Panel A shows the theoretical distributions in the two groups:
+$\text{Weibull}(1.2,2)$ in the treatment group and $\text{Weibull}(3,5)$ in the control group.
+Panel B shows the exact back-transformed quantile treatment effect (BQTE)
+as a function of the outcome value in controls (green line), 
+together with estimates and their 95% CIs when 
+`bqte()` was applied on a simulated data set 
+with $N = 500$ individuals in each group.
+\vspace{0.5cm}
+
+
+### 2.2. The range of valid estimates
+
+By default, `bqte()` estimates BQTE in the interval 
+between the empirical quantile levels of 
+$\frac{5}{N}$ and $\frac{N-5}{N}$, where $N$ is
+the sample size in the control group. 
+For example, in Fig. S1B, $N=500$ and hence
+the range of estimation is between the 1st and the 99th percentile 
+of the observed data, which correspond to the values of
+2 and 8, respectively, when rounded to integers.
+
+Let's confirm that the default range for estimation leads to well
+calibrated confidence intervals (CIs), and let's also check that the estimates at 
+more extreme quantile levels of $\frac{1}{N}$ and $\frac{N-1}{N}$ 
+would not anymore remain correctly calibrated.
+
+For both values of $N = 50$ and $N = 500$, we generate $R = 100$ data sets 
+as above from the two Weibull distributions and apply `bqte()` function
+to estimate BQTE 
+at the outcome values that correspond to the following 5 quantile levels
+in controls:
+$\frac{1}{N}, \frac{5}{N}, \frac{1}{2}, \frac{N-5}{N}, \frac{N-1}{N}.$
+For each $N$ and each quantile level, we then compute 
+the empirical coverage of the 95%CIs
+and the empirical mean of the BQTE estimates 
+over the $R$ data sets. Results are show in Fig S2.
+
+```{r, echo = FALSE}
+qte.conf = 0.95
+Ns = c(50, 500)
+R = 100
+```
+
+```{r, eval = eval.Fig2, echo = FALSE}
+set.seed(121)
+res = list()
+for(ii in 1:length(Ns)){
+  N = Ns[ii]
+  p.quant = c(1/N, 5/N, 0.5, 1-5/N, 1-1/N)
+  lab.quant = c("1/N", "5/N", "1/2", "1-5/N", "1-1/N")
+  at = qweibull(p.quant, C.a, C.b)
+  #exact values for treatment effects 'at' points
+  exact.bqte = qweibull(pweibull(at, C.a, C.b), T.a, T.b) - at
+  inside = rep(0, length(at))
+  est = matrix(NA, ncol = length(at), nrow = R)
+  est.direct = matrix(NA, ncol = length(at), nrow = R)
+  est.doksum = matrix(NA, ncol = length(at), nrow = R)
+  
+  for(set in 1:R){
+    Trt = rweibull(N, T.a, T.b)
+    Con = rweibull(N, C.a, C.b)
+    
+    # bagging estimate with confidence intervals
+    res.bqte = bqte(Treatment = Trt, Control = Con, 
+                    at = at, verbose = FALSE, B = 2000,
+                    bagging = TRUE)
+    inside = inside + as.numeric((res.bqte$bqte.low < exact.bqte & 
+                                    res.bqte$bqte.up > exact.bqte))
+    est[set,] = res.bqte$bqte
+    
+    # direct estimate without bagging (and no confidence intervals)
+    res.bqte = bqte(Treatment = Trt, Control = Con, 
+                    at = at, verbose = FALSE, B = 1,
+                    bagging = FALSE)
+    est.direct[set,] = res.bqte$bqte
+    
+    # Doksum estimate
+    est.doksum[set,] = bqte.doksum(at = at, Treatment = Trt, Control = Con)
+  }
+  mu = apply(est, 2, mean)
+  se = apply(est, 2, sd) / sqrt(R)
+  rmse = sqrt(rowSums((t(est) - exact.bqte)^2)/R)
+  mu.direct = apply(est.direct, 2, mean)
+  se.direct = apply(est.direct, 2, sd) / sqrt(R)
+  rmse.direct = sqrt(rowSums((t(est.direct) - exact.bqte)^2)/R)
+  mu.doksum = apply(est.doksum, 2, mean)
+  se.doksum = apply(est.doksum, 2, sd) / sqrt(R)
+  rmse.doksum = sqrt(rowSums((t(est.doksum) - exact.bqte)^2)/R)
+
+  ci = sapply(inside, function(x){ binom.test(x, R, conf.level = 0.95)$conf.int})
+  rel.bias = (mu - exact.bqte) / abs(exact.bqte) 
+  res[[ii]] = data.frame(label = lab.quant, at, 
+                         exact = exact.bqte, 
+                         est = mu, 
+                         se.est = se, 
+                         rmse = rmse,
+                         rel.bias, 
+                         est.direct = mu.direct, 
+                         se.est.direct = se.direct, 
+                         rmse.direct = rmse.direct,
+                         est.doksum = mu.doksum, 
+                         se.est.doksum = se.doksum, 
+                         rmse.doksum = rmse.doksum,
+                         ci.cov = inside/R, 
+                         ci.cov.low = ci[1,], 
+                         ci.cov.up = ci[2,],
+                         est.direct = apply(est, 2, mean)
+                        )
+}
+params = data.frame(T.a, T.b, C.a, C.b)
+save(res, Ns, params, file = Fig2.filename)
+```
+
+
+```{r, fig.width = 9, fig.height = 3, echo = FALSE}
+if(!eval.Fig2) load(Fig2.filename)
+par(mfrow = c(1, 3))
+par(mar = c(5.5, 5.5, 2, 1))
+n.quant = nrow(res[[1]])
+plot(NULL, xlim = c(0.5, n.quant + 0.5), ylim = c(60, 100), 
+     xaxt = "n", yaxt = "n", xlab = "quantile level", 
+     ylab = "coverage (%) of 95%CI", cex.lab = 1.3)
+adj = -0.1
+cols = c("orange","dodgerblue")
+pchs = c(0, 1, 5)
+grid()
+abline(h = 95)
+
+for(ii in 1:length(Ns)){
+  points(1:n.quant + adj, res[[ii]]$ci.cov*100,
+         col = cols[ii], pch = pchs[ii], cex = 1.2, lwd = 1.6)
+  arrows(1:n.quant + adj, res[[ii]]$ci.cov.low*100,
+         1:n.quant + adj, res[[ii]]$ci.cov.up*100, 
+         col = cols[ii], length = 0, code = 3, lwd = 1.2)
+  adj = adj + 0.2
+}
+#Add legend manually
+rect(xleft = 4.0, ybottom = 58, xright = 5.7, ytop = 70,
+     col = "white", border = NULL)
+points(rep(4.3, 2), c(61, 67), pch = pchs, 
+       col = cols, lwd = 1.5, cex = 1.2)
+text(c(5, 5.1), c(61, 67), labels = paste0("N=",Ns), cex  = 1.3)
+
+axis(1, at = 1:n.quant, labels = FALSE)
+text(x = 1:n.quant, y = par("usr")[3] - 3.8, res[[1]]$label,
+     xpd = NA, srt = 35, adj = 0.7, cex = 1.3)
+axis(2, at = c(60, 70, 80, 90, 95, 100), cex.axis = 1.3, las = 1)
+text(x = par("usr")[1] - 1.2, y = par("usr")[4] + 3,
+     labels = c("A."),xpd = NA, cex = 2)
+
+plot(NULL, xlim = c(0.5, n.quant + 0.5), ylim = c(-1,1), 
+     xaxt = "n", yaxt = "n", xlab = "quantile level", 
+     ylab = "bias", cex.lab = 1.3)
+axis(1, at = 1:n.quant, labels = FALSE)
+text(x = 1:n.quant, y = par("usr")[3] - 0.2,
+     res[[ii]]$label,
+     xpd = NA, srt = 35, adj = 0.7, cex = 1.3)
+axis(2, at = c(-1, -0.5, 0, 0.5, 1), cex.axis = 1.3, las = 1)
+adj = -0.1
+grid()
+abline(h = 0)
+
+for(ii in 1:length(Ns)){
+  bias = res[[ii]]$est - res[[ii]]$exact
+  se = res[[ii]]$se.est 
+  points(1:n.quant + adj, bias,
+         col = cols[ii], pch = pchs[ii], cex = 1.2, lwd = 1.6)
+  arrows(1:n.quant + adj, bias + 1.96*se,
+         1:n.quant + adj, bias - 1.96*se, 
+         col = cols[ii], length = 0, 
+         code = 3, lwd = 1.2)
+  adj = adj + 0.2
+}
+text(x = par("usr")[1] - 1.2, y = par("usr")[4] + 0.15,
+     labels = c("B."), xpd = NA, cex = 2)
+
+x = qweibull(seq(0.001, 0.999, 0.001), C.a, C.b)
+y = qweibull(seq(0.001, 0.999, 0.001), T.a, T.b) - x
+plot(x, y, t = "l", lty = 1, lwd = 2, col = "limegreen", 
+     xlab = "outcome in controls", xlim = c(0, 10), ylim = c(-3.5, 0),
+     ylab = "BQTE", cex.lab = 1.3, cex.axis = 1.3, las = 1)
+grid()
+
+for(ii in 1:length(Ns)){
+  bias = res[[ii]]$est - res[[ii]]$exact
+  se = res[[ii]]$se.est 
+  points(res[[ii]]$at, res[[ii]]$est,
+         col = cols[ii], pch = pchs[ii], cex = 1.2, lwd = 1.6)
+  arrows(res[[ii]]$at, res[[ii]]$est + 1.96*se,
+         res[[ii]]$at, res[[ii]]$est - 1.96*se, 
+         col = cols[ii], length = 0, 
+         code = 3, lwd = 1.2)
+}
+text(x = par("usr")[1] - 2.5, y = par("usr")[4] + 0.25,
+     labels = c("C."), xpd = NA, cex = 2)
+```
+
+**Figure S2.** Observed coverage of 95% confidence intervals (panel A),
+observed bias (panel B) and
+the mean of the estimates over the $100$ replicates compared to the 
+exact values shown by the green line (panel C). 
+The value of $N$ is shown in the legend of panel A.
+The intervals around each point show 95% confidence intervals 
+based on the sample size of $100$ replicates.
+\vspace{0.5cm}
+
+
+In Fig. S2A we see that, independent of sample size $N$, 
+the 95%CIs are well calibrated for quantile levels $\frac{5}{N}$ and $\frac{N-5}{N}$ 
+but not for more extreme levels of $\frac{1}{N}$ or $\frac{N-1}{N}$. 
+Fig. S2B shows that there is more bias at the extreme quantile levels 
+than near the median for both sample sizes and the bias does not depend much
+on the sample size except at the extreme quantile levels. 
+(Note, however, that for any fixed outcome value in controls, 
+the bias would disappear as sample size grows;
+this is demonstrated by the estimates at the median point in panel B
+where the bias disappears as $N$ grows from 50 to 500.)
+From Fig. S2C we observe how these biases correspond to some overestimation
+of the magnitude of the quantile treatment effect (QTE) at the extreme quantile levels of 
+$\frac{1}{N}$ and $\frac{N-1}{N}$.
+Based on these results, 
+our default option is to restrict the estimation of BQTE and QTE
+between quantile levels of $\frac{5}{N}$ and $\frac{N-5}{N}$.
+
+Figure S2 shows only the bagging estimator but we also evaluated the other two
+estimators on the same simulation setting. 
+The root mean square error (RMSE) of the three estimators at the quantile levels of 
+$5/N$, $1/2$ and $1-5/N$ were, for the sample size of 50:
+```{r, echo = FALSE}
+#Compare 3 estimators in terms of RMSE
+data.frame(quantile = c("5/N","1/2","1-5/N"), 
+           at = res[[1]]$at[2:4], 
+           RMSE_bagging = res[[1]]$rmse[2:4],
+           RMSE_direct = res[[1]]$rmse.direct[2:4],
+           RMSE_doksum = res[[1]]$rmse.doksum[2:4])
+```
+and for the sample size of 500:
+```{r, echo = FALSE}
+data.frame(quantile = c("5/N","1/2","1-5/N"),
+           at = res[[2]]$at[2:4], 
+           RMSE_bagging = res[[2]]$rmse[2:4],
+           RMSE_direct = res[[2]]$rmse.direct[2:4],
+           RMSE_doksum = res[[2]]$rmse.doksum[2:4])
+```
+
+
+### 2.3. The number of quantile points used in estimation
+
+The `bqte()` function takes as input the 
+number $K$ of quantile points, corresponding to the probability values of
+$1/(K+1),2/(K+1),\ldots,K/(K+1)$, that are used in the estimation of
+BQTEs. Between these points, BQTE is estimated
+by linear interpolation.
+By default, we set $K = N$, where $N$ is the size of the control group.
+The value $N$ is a natural upper bound for $K$ because when $K = N$,
+there is already a separate estimate corresponding to each control observation.
+But could some smaller value for $K < N$ be a better choice?
+Let's use a similar simulation procedure as in Fig. S2 to assess how
+smaller values of $K < N$ compare to our default choice $K=N.$
+
+For this simulation, the sample size in both groups 
+takes values $N = 50$ or $N = 500$, and for both values of $N$,
+we will run 100 simulations for each value of 
+$K = \frac{N}{4}, \frac{N}{2}, \frac{2N}{3}, N$.
+The results are in Fig. S3.
+
+```{r, echo = FALSE}
+Ns = c(50, 500)
+Kcoeffs = c(0.25, 0.5, 0.66, 1)
+R = 100
+```
+
+```{r, eval = eval.Fig3, echo = FALSE}
+set.seed(123)
+res = list()
+res.ii = 1
+for(kk in 1:length(Ns)){
+  for(ii in 1:length(Kcoeffs)){
+    N = Ns[kk]
+    Kc = Kcoeffs[ii]
+    p.quant = c(1/N, 5/N, 0.5, 1-5/N, 1-1/N)
+    lab.quant = c("1/N", "5/N", "1/2", "1-5/N", "1-1/N")
+    at = qweibull(p.quant, C.a, C.b)
+  #exact values for BQTEs at points 'at'
+    exact.bqte = qweibull(pweibull(at, C.a, C.b), T.a, T.b) - at
+    inside = rep(0, length(at)) #coverage
+    est = matrix(NA, ncol = length(at), nrow = R)
+    for(set in 1:R){
+      Trt = rweibull(N, T.a, T.b)
+      Con = rweibull(N, C.a, C.b)
+      res.bqte = bqte(Treatment = Trt, Control = Con, 
+                      at = at, verbose = FALSE, K = ceiling(N*Kc))
+      inside = inside + as.numeric((res.bqte$bqte.low < exact.bqte & 
+                                    res.bqte$bqte.up > exact.bqte))
+      est[set,] = res.bqte$bqte
+    }
+    mu = apply(est, 2, mean)
+    se = apply(est, 2, sd)/sqrt(R)
+    ci = sapply(inside, function(x){ binom.test(x, R, conf.level = 0.95)$conf.int})
+    rel.bias = (mu - exact.bqte)/abs(exact.bqte) 
+    res[[res.ii]] = data.frame(labels = lab.quant, at, exact = exact.bqte,
+                               est = mu, se.est = se, rel.bias, 
+                               ci.cov = inside/R, 
+                               ci.cov.low = ci[1,], 
+                               ci.cov.up = ci[2,])
+    res.ii = res.ii + 1
+  }
+}
+params = data.frame(T.a, T.b, C.a, C.b)
+save(res, Ns, Kcoeffs, params, file = Fig3.filename)
+```
+
+
+```{r, fig.width = 9.5, fig.height = 6, echo = FALSE}
+if(!eval.Fig3) load(Fig3.filename)
+par(mfrow = c(length(Ns), 3))
+par(mar = c(5.5, 5.5, 2, 1))
+n.quant = nrow(res[[1]])
+res.ii = 0
+x = qweibull(seq(0.001, 0.999, 0.001), C.a, C.b)
+y = qweibull(seq(0.001, 0.999, 0.001), T.a, T.b) - x
+
+for(N.ii in 1:length(Ns)){
+  N.C = Ns[N.ii]
+  plot(NULL, xlim = c(0.5, n.quant + 0.5), ylim = c(40, 100), 
+       xaxt = "n", yaxt = "n", xlab = "quantile level", 
+       ylab = "coverage (%) of 95%CI", cex.lab = 1.3, 
+       main = substitute(N==N.C, list(N.C = N.C)), cex.main = 1.3)
+  adj = -0.3
+  cols = c("red", "orange", "dodgerblue", "navyblue")
+  pchs = c(0, 1, 5, 6)
+  grid()
+  abline(h = 95)
+
+  for(ii in 1:length(Kcoeffs)){
+    points(1:n.quant + adj, res[[res.ii + ii]]$ci.cov*100,
+           col = cols[ii], pch = pchs[ii], cex = 1.2, lwd = 1.6)
+    arrows(1:n.quant + adj, res[[res.ii +ii]]$ci.cov.low*100,
+           1:n.quant + adj, res[[res.ii +ii]]$ci.cov.up*100, 
+           col = cols[ii], length = 0, code = 3, lwd = 1.2)
+    adj = adj + 0.2
+  }
+  #Add legend manually
+  rect(xleft = 3.5, ybottom = 37, xright = 5.7, ytop = 60,
+       col = "white", border = NULL)
+  points(rep(3.7, 4),c(40, 46, 52, 58), 
+         pch = pchs, col = cols, lwd = 1.5, cex = 1.2)
+  text(c(4.6, 4.5, 4.6, 4.4), c(40, 46, 52, 58), 
+       labels = paste0("K/N=",Kcoeffs), cex  = 1.3)
+
+  axis(1, at = 1:n.quant, labels = FALSE)
+  text(x = 1:n.quant, y = par("usr")[3] - 5.5,
+       res[[1]]$labels,
+       xpd = NA, srt = 35, adj = 0.7, cex = 1.3)
+  axis(2, at = c(40, 50, 60, 70, 80, 90, 100), cex.axis = 1.3, las = 2)
+  text(x = par("usr")[1] - 1.2, y = par("usr")[4] + 5,
+       labels = c("A.","D.","G.")[N.ii],xpd = NA, cex = 2)
+
+  plot(NULL, xlim = c(0.5,n.quant + 0.5), ylim = c(-1,1), 
+       xaxt = "n", yaxt = "n", xlab = "quantile level", 
+       ylab = "bias", cex.lab = 1.3, 
+       main = substitute(N==N.C, list(N.C = N.C)), cex.main = 1.3)
+  axis(1, at = 1:n.quant, labels = FALSE)
+  text(x = 1:n.quant, y = par("usr")[3] - 0.2,
+       res[[1]]$labels,
+       xpd = NA, srt = 35, adj = 0.7, cex = 1.3)
+  axis(2, at = c(-1, -0.5, 0, 0.5, 1), cex.axis = 1.3, las = 2)
+  adj = -0.3
+  grid()
+  abline(h = 0)
+
+  for(ii in 1:length(Kcoeffs)){
+    bias = res[[res.ii + ii]]$est - res[[res.ii + ii]]$exact
+    se = res[[res.ii + ii]]$se.est 
+    points(1:n.quant + adj, bias,
+         col = cols[ii], pch = pchs[ii], cex = 1.2, lwd = 1.6)
+    arrows(1:n.quant + adj, bias + 1.96*se,
+         1:n.quant + adj, bias - 1.96*se, 
+         col = cols[ii], length = 0, 
+         code = 3, lwd = 1.2)
+    adj = adj + 0.2
+  }
+  text(x = par("usr")[1] - 1.2, y = par("usr")[4] + 0.15,
+       labels = c("B.","E.","H.")[N.ii], xpd = NA, cex = 2)
+
+  plot(x, y, t = "l", lty = 1, lwd = 2, col = "limegreen", 
+       xlab = "outcome in controls", xlim = c(0,10), ylim = c(-3.5,0),
+       ylab = "BQTE", cex.lab = 1.3, cex.axis = 1.3, las = 1,
+       main = substitute(N==N.C, list(N.C = N.C)), cex.main = 1.3)
+  grid()
+  for(ii in 1:length(Kcoeffs)){
+    bias = res[[res.ii + ii]]$est - res[[res.ii + ii]]$exact
+    se = res[[res.ii + ii]]$se.est 
+    points(res[[res.ii +ii]]$at, res[[res.ii + ii]]$est,
+           col = cols[ii], pch = pchs[ii], cex = 1.2, lwd = 1.6)
+    arrows(res[[res.ii + ii]]$at, res[[res.ii + ii]]$est + 1.96*se,
+           res[[res.ii + ii]]$at, res[[res.ii + ii]]$est - 1.96*se, 
+           col = cols[ii], length = 0, 
+           code = 3, lwd = 1.2)
+  }
+  text(x = par("usr")[1] - 2.5, y = par("usr")[4] + 0.25,
+       labels = c("C.","F.","I.")[N.ii],xpd = NA, cex = 2)
+  res.ii = res.ii + length(Kcoeffs)
+}
+```
+
+**Figure S3.** Observed coverage of 95% confidence intervals (panels A, D),
+observed bias (panels B, E) and
+the mean of the estimates over the $100$ replicates compared to the 
+exact values shown by the green line (panels C, F). 
+The ratio $K/N$ is shown in the legend of panels A and D, 
+and $N$ is shown in the title of each panel. The intervals around each 
+point show 95% confidence intervals based on the sample size of $100$ replicates.
+\vspace{0.5cm}
+
+In Figure S3, we do not observe clear difference between different values of $K/N$
+except at the extreme quantile levels of $1/N$ and $1-1/N$,
+and hence the choice $K = N$ seems a suitable default 
+value to be used in `bqte()` function.
+
+
+### 2.4. Magnitude of estimation error and coverage of confidence intervals in discrete data 
+
+We used the Mossad data from the main paper to generate realistic data about the
+duration of cold in a randomized trial when the duration is measured in days. 
+We focus on the recommended interval between quantile levels $5/N$ and $1-5/N$ that
+in these data corresponds to interval (3,17).
+For each integer value in this interval, we computed the exact BQTE values for the 
+observed distribution of the Mossad data using function `exact.bqte.discrete()`.
+Then we generated 100 simulations from the empirical distribution from Mossad data 
+with sample sizes equaling to the Mossad data (Treatment group = 49, Control group = 50).
+We estimated BQTE by all three estimators.
+Figure S4 shows the root mean squared error of the three estimators
+as well as the coverage of the 95% confidence interval by our
+bootstrap method.
+
+
+```{r, eval = eval.Fig4, echo = FALSE}
+# Data set 1, Mossad data
+filename = "https://raw.githubusercontent.com/mjpirinen/qte-by-outcome/main/Mossad.csv"
+dat <- read.csv(filename)
+duration = dat$Duration
+status = dat$Zinc
+
+x = seq(1, max(duration))
+#Empirical probability distributions for two groups:
+#Treatment group
+tab = table(duration[status == 1])
+pr.t = rep(0, length(x))
+pr.t[as.numeric(names(tab))] = as.numeric(tab)
+pr.t = pr.t / sum(pr.t)
+#Control group
+tab = table(duration[status == 0])
+pr.c = rep(0, length(x))
+pr.c[as.numeric(names(tab))] = as.numeric(tab)
+pr.c = pr.c / sum(pr.c)
+
+# Compute recommended range for BQTE estimation
+n.c = sum(status == 0)
+n.t = sum(status == 1)
+at = c(quantiles.from.density(p = 5/n.c, pr.c), 
+       quantiles.from.density(p = 1 - 5/n.c, pr.c))
+at = seq(at[1], at[2])
+# Compute true BQTE for current data
+true.bqte = sapply(at, function(a){exact.bqte.discrete(a, x, pr.c, pr.t)})
+
+# Compare performance of three estimators of BQTE:
+# 1. Direct estimate from data (without bagging)
+# 2. Bagging estimate (average of the bootstrap distribution)
+# 3. Doksum estimate 
+n.iter = 100
+res.dir = matrix(NA, ncol = length(at), nrow = n.iter)
+res.bag = matrix(NA, ncol = length(at), nrow = n.iter)
+res.doksum = matrix(NA, ncol = length(at), nrow = n.iter)
+within.ci = rep(0, length(at)) # To estimate the coverage of CIs from bootstrap
+set.seed(10)
+for(ii in 1:n.iter){
+  #Generate data from pr.c (Controls) and pr.t (Treated)
+  Control = sample(x, size = n.c, replace = T, prob = pr.c)
+  Treatment = sample(x, size = n.t, replace = T, prob = pr.t)
+  
+  #Without bagging (Ignores bootstrap and sets B=1 to speed up)
+  res = bqte(Treatment, Control, at = at, 
+             bqte.conf = 0.95, B = 1, 
+             K = length(Control), bagging = FALSE,
+             verbose = FALSE)
+  res.dir[ii,] = res$bqte
+  
+  #With bagging
+  res = bqte(Treatment, Control, at = at, 
+             bqte.conf = 0.95, B = 2000, 
+             K = length(Control), bagging = TRUE,
+             verbose = FALSE)
+  res.bag[ii,] = res$bqte
+  
+  within.ci = within.ci + as.numeric(res$bqte.low <= true.bqte & res$bqte.up >= true.bqte)
+  
+  #Doksum estimator
+  res = bqte.doksum(at = at, Treatment, Control)
+  res.doksum[ii,] = res
+}
+
+rmse.dir = sqrt(apply( (t(res.dir) - true.bqte)^2, 1, mean))
+rmse.bag = sqrt(apply( (t(res.bag) - true.bqte)^2, 1, mean))
+rmse.doksum = sqrt(apply( (t(res.doksum) - true.bqte)^2, 1, mean))
+params = data.frame(n.iter = n.iter)
+res = data.frame(at = at, 
+                 true.bqte = true.bqte, 
+                 rmse.dir = rmse.dir, 
+                 rmse.bag = rmse.bag, 
+                 rmse.doksum = rmse.doksum, 
+                 within.ci = within.ci/n.iter)
+save(res, params, file = Fig4.filename)
+```
+
+```{r, fig.width = 10, fig.height = 5, echo = FALSE}
+if(!eval.Fig4) load(Fig4.filename)
+par(mfrow = c(1,2))
+plot(res$at, res$rmse.dir, t = "l", col = "red", lty = 2, 
+     ylim = c(0, max(c(res$rmse.dir, res$rmse.bag, res$rmse.doksum))), 
+     xlab = "outcome in controls", ylab = "root mean squared error")
+lines(res$at, res$rmse.bag, col = "blue", t = "l", lty = 1)
+lines(res$at, res$rmse.doksum, col = "orange", t = "l", lty = 4)
+
+legend("bottomright", leg = c("direct","bagging","Doksum"), 
+       col = c("red","blue","orange"), lty = c(2,1,4))
+
+text(x = par("usr")[1] - 2, y = par("usr")[4] + 0.05,
+     labels = c("A."), xpd = NA, cex = 2)
+
+ci = t(sapply(round(params$n.iter*res$within.ci), function(y){as.numeric(
+  binom.test(y, n = params$n.iter, conf.level = 0.95)$conf.int)} ))
+plot(res$at, 100*res$within.ci, xlab = "outcome in controls", ylab = "coverage (%) of 95%CI", 
+     ylim = c(85, 100), col = "white")
+abline(h = 95, lty = 2, col = "red")
+arrows(res$at, 100*ci[,1], res$at, 100*ci[,2], col = "gray", lwd = 2, code = 3, length = 0, angle = 90)
+points(res$at, 100*res$within.ci, col = "black", pch = 19)
+text(x = par("usr")[1] - 2.2, y = par("usr")[4] + 0.4,
+     labels = c("B."),xpd = NA, cex = 2)
+```
+
+**Figure S4.** Panel A shows root mean squared error (RMSE) for three estimators 
+(bagging in blue, direct in red and Doksum in orange) at each of the integer valued cold duration
+between 3 and 17 days. The RMSE is estimated over 100 simulated data sets that follow the
+observed distributions of the Doksum data from the main text.
+Panel B shows the empirical coverage of the 95% confidence intervals estimated with bootstrap
+at the same grid of values as in panel A. The intervals around the point estimates are 95%
+binomial confidence intervals based on 100 samples and the red line denotes the target coverage
+of 95%. 
+\vspace{0.5cm}
+
+From Figure S4 we see that the RMSE seems the smallest for the bagging estimator. 
+As in the continuous setting, there were little differences between the three estimators, 
+we assume that the differences seen here are due to the discreteness of the data. 
+Based on the result of Figure S4A, we have used the
+bagging estimator as our default estimator in the discrete data sets that we have analyzed in the main text.
+
+Panel B shows that the 95% confidence intervals do not show any evidence of falling short of the 
+target coverage of 95% as the confidence intervals of the coverage estimates 
+in panel B either overlap with the target value or remain above the target value in every case.
+
+
+\newpage
+# 3. Source of data of the included examples
+
+**Mossad study.** The data are from pages 2-4 of the Additional file 2 of
+
+<https://doi.org/10.1186/s12874-017-0356-y>.
+
+**Zinc acetate studies.** The data are from page 8 of the Supplementary file 2 of
+
+<https://doi.org/10.1093/ofid/ofx059>
+
+**Carrageenan studies.** The data are from page 3 of the Supplementary file of
+
+<https://doi.org/10.1002/prp2.810>
+\newpage
+
+
+# 4. Supplementary figures of real data sets
+
+```{r echo = F}
+for(data.set in c(1)){
+  # Data set 1, Mossad data
+  if(data.set == 1){
+    #filename = "https://raw.githubusercontent.com/mjpirinen/qte-by-outcome/main/Mossad.csv"
+    filename = "Mossad.csv"
+    title.lab = "Mossad"
+    yrange.d = c(-10, 0)
+    yrange.r = c(-80,0)
+    dat = read.csv(filename)
+    duration = dat$Duration
+    status = dat$Zinc
+  }
+  
+  # Data set 2, Zinc acetat data
+  if(data.set == 2){
+    #filename = "https://raw.githubusercontent.com/mjpirinen/qte-by-outcome/main/ZnAcet.csv"
+    filename = "ZnAcet.csv"
+    title.lab = "Zinc acetat"
+    yrange.d = c(-8, 0.5)
+    yrange.r = c(-60,0)
+    dat = read.csv(filename)
+    duration = dat$Duration
+    status = dat$Zinc
+  }
+  
+  # Data set 3, carrageenan data
+  if(data.set == 2){
+    #filename = "https://raw.githubusercontent.com/mjpirinen/qte-by-outcome/main/Carrageenan.csv"
+    filename = "Carrageenan.csv"
+    title.lab = "Carrageenan"
+    yrange.d = c(-10, 1.5)
+    yrange.r = c(-70,30)
+    dat = read.csv(filename)
+    duration = dat$Duration
+    status = dat$Carr
+  }
+
+Treatment = duration[status == 1]
+Control = duration[status == 0]
+
+res = bqte(Treatment, Control, at = NULL, 
+           bqte.conf = 0.95, B = 2000, 
+           K = length(Control), bagging = TRUE,
+           tails = TRUE,
+           verbose = FALSE)
+#res
+
+xlab = "Days in controls"
+pch.sty = NULL
+par(mfrow = c(2,3))
+for(rel.scale in c(FALSE,TRUE)){
+
+  ate = mean(Treatment) - mean(Control)
+  txt = title.lab
+  yrange = yrange.d
+  
+  if(rel.scale) {
+    ate = 100*ate/mean(Control)
+    txt = ""
+    yrange = yrange.r
+  }
+  plot_bqte(res, plot.ci = TRUE, plot.rbqte = rel.scale,
+            pch = pch.sty, col = "black", col.ci = "gray",
+            xlim = NULL, ylim = yrange, 
+            xlab = xlab, ylab = NULL,
+            xaxs = "r", yaxs = "r",
+            xaxp = NULL, yaxp = NULL,
+            main = txt, cex.axis = 1.3, cex.lab = 1.2)
+  abline(h = ate, lty = 2, lwd = 1, col = "red")
+
+  plot_tbqte(res, utbqte = FALSE, plot.ci = TRUE, plot.relative = rel.scale,
+            pch = pch.sty, col.ci = "lightblue", col = "black",
+            xlim = NULL, ylim = yrange, 
+            xlab = xlab, ylab = NULL,
+            xaxs = "r", yaxs = "r",
+            xaxp = NULL, yaxp = NULL,
+            cex.axis = 1.3, cex.lab = 1.2)
+  abline(h = ate, lty = 2, lwd = 1, col = "red")
+
+  plot_tbqte(res, utbqte = TRUE, plot.ci = TRUE, plot.relative = rel.scale,
+            pch = pch.sty, col.ci = "salmon", col = "black",
+            xlim = NULL, ylim = yrange, 
+            xlab = xlab, ylab = NULL,
+            xaxs = "r", yaxs = "r",
+            xaxp = NULL, yaxp = NULL,
+            cex.axis = 1.3, cex.lab = 1.2)
+  abline(h = ate, lty = 2, lwd = 1, col = "red")
+  }
+}
+```
+
+**Figure S5.** BQTE, LTBQTE and UTBQTE functions for the Mossad data set. 
+The top row shows the values on the outcome scale.
+The bottom row shows the values on the relative scale. 
+The solid black lines shows the estimates and the band shows the 95% 
+confidence interval based on the bootstrap samples.
+The horizontal dashed red lines mark the average treatment effect.
+\vspace{0.5cm}
+
+```{r echo = F}
+for(data.set in c(2)){
+  # Data set 1, Mossad data
+  if(data.set == 1){
+    #filename = "https://raw.githubusercontent.com/mjpirinen/qte-by-outcome/main/Mossad.csv"
+    filename = "Mossad.csv"
+    title.lab = "Mossad"
+    yrange.d = c(-10, 0)
+    yrange.r = c(-80,0)
+    dat = read.csv(filename)
+    duration = dat$Duration
+    status = dat$Zinc
+  }
+  
+  # Data set 2, Zinc acetat data
+  if(data.set == 2){
+    #filename = "https://raw.githubusercontent.com/mjpirinen/qte-by-outcome/main/ZnAcet.csv"
+    filename = "ZnAcet.csv"
+    title.lab = "Zinc acetat"
+    yrange.d = c(-8, 0.5)
+    yrange.r = c(-60,0)
+    dat = read.csv(filename)
+    duration = dat$Duration
+    status = dat$Zinc
+  }
+  
+  # Data set 3, carrageenan data
+  if(data.set == 3){
+    #filename = "https://raw.githubusercontent.com/mjpirinen/qte-by-outcome/main/Carrageenan.csv"
+    filename = "Carrageenan.csv"
+    title.lab = "Carrageenan"
+    yrange.d = c(-10, 1.5)
+    yrange.r = c(-70,30)
+    dat = read.csv(filename)
+    duration = dat$Duration
+    status = dat$Carr
+  }
+
+Treatment = duration[status == 1]
+Control = duration[status == 0]
+
+res = bqte(Treatment, Control, at = NULL, 
+           bqte.conf = 0.95, B = 2000, 
+           K = length(Control), bagging = TRUE,
+           tails = TRUE,
+           verbose = FALSE)
+#res
+
+xlab = "Days in controls"
+pch.sty = NULL
+par(mfrow = c(2,3))
+for(rel.scale in c(FALSE,TRUE)){
+
+  ate = mean(Treatment) - mean(Control)
+  txt = title.lab
+  yrange = yrange.d
+  
+  if(rel.scale) {
+    ate = 100*ate/mean(Control)
+    txt = ""
+    yrange = yrange.r
+  }
+  plot_bqte(res, plot.ci = TRUE, plot.rbqte = rel.scale,
+            pch = pch.sty, col = "black", col.ci = "gray",
+            xlim = NULL, ylim = yrange, 
+            xlab = xlab, ylab = NULL,
+            xaxs = "r", yaxs = "r",
+            xaxp = NULL, yaxp = NULL,
+            main = txt, cex.axis = 1.3, cex.lab = 1.2)
+  abline(h = ate, lty = 2, lwd = 1, col = "red")
+
+  plot_tbqte(res, utbqte = FALSE, plot.ci = TRUE, plot.relative = rel.scale,
+            pch = pch.sty, col.ci = "lightblue", col = "black",
+            xlim = NULL, ylim = yrange, 
+            xlab = xlab, ylab = NULL,
+            xaxs = "r", yaxs = "r",
+            xaxp = NULL, yaxp = NULL,
+            cex.axis = 1.3, cex.lab = 1.2)
+  abline(h = ate, lty = 2, lwd = 1, col = "red")
+
+  plot_tbqte(res, utbqte = TRUE, plot.ci = TRUE, plot.relative = rel.scale,
+            pch = pch.sty, col.ci = "salmon", col = "black",
+            xlim = NULL, ylim = yrange, 
+            xlab = xlab, ylab = NULL,
+            xaxs = "r", yaxs = "r",
+            xaxp = NULL, yaxp = NULL,
+            cex.axis = 1.3, cex.lab = 1.2)
+  abline(h = ate, lty = 2, lwd = 1, col = "red")
+  }
+}
+```
+
+**Figure S6.** BQTE, LTBQTE and UTBQTE functions for the Zinc acetat data set. 
+The top row shows the values on the outcome scale.
+The bottom row shows the values on the relative scale. 
+The solid black lines shows the estimates and the band shows the 95% 
+confidence interval based on the bootstrap samples.
+The horizontal dashed red lines mark the average treatment effect.
+\vspace{0.5cm}
+
+
+```{r echo = F}
+for(data.set in c(3)){
+  # Data set 1, Mossad data
+  if(data.set == 1){
+    #filename = "https://raw.githubusercontent.com/mjpirinen/qte-by-outcome/main/Mossad.csv"
+    filename = "Mossad.csv"
+    title.lab = "Mossad"
+    yrange.d = c(-10, 0)
+    yrange.r = c(-80,0)
+    dat = read.csv(filename)
+    duration = dat$Duration
+    status = dat$Zinc
+  }
+  
+  # Data set 2, Zinc acetat data
+  if(data.set == 2){
+    #filename = "https://raw.githubusercontent.com/mjpirinen/qte-by-outcome/main/ZnAcet.csv"
+    filename = "ZnAcet.csv"
+    title.lab = "Zinc acetat"
+    yrange.d = c(-8, 0.5)
+    yrange.r = c(-60,0)
+    dat = read.csv(filename)
+    duration = dat$Duration
+    status = dat$Zinc
+  }
+  
+  # Data set 3, carrageenan data
+  if(data.set == 3){
+    #filename = "https://raw.githubusercontent.com/mjpirinen/qte-by-outcome/main/Carrageenan.csv"
+    filename = "Carrageenan.csv"
+    title.lab = "Carrageenan"
+    yrange.d = c(-10, 1.5)
+    yrange.r = c(-70,30)
+    dat = read.csv(filename)
+    duration = dat$Duration
+    status = dat$Carr
+  }
+
+Treatment = duration[status == 1]
+Control = duration[status == 0]
+
+res = bqte(Treatment, Control, at = NULL, 
+           bqte.conf = 0.95, B = 2000, 
+           K = length(Control), bagging = TRUE,
+           tails = TRUE,
+           verbose = FALSE)
+#res
+
+xlab = "Days in controls"
+pch.sty = NULL
+par(mfrow = c(2,3))
+for(rel.scale in c(FALSE,TRUE)){
+
+  ate = mean(Treatment) - mean(Control)
+  txt = title.lab
+  yrange = yrange.d
+  
+  if(rel.scale) {
+    ate = 100*ate/mean(Control)
+    txt = ""
+    yrange = yrange.r
+  }
+  plot_bqte(res, plot.ci = TRUE, plot.rbqte = rel.scale,
+            pch = pch.sty, col = "black", col.ci = "gray",
+            xlim = NULL, ylim = yrange, 
+            xlab = xlab, ylab = NULL,
+            xaxs = "r", yaxs = "r",
+            xaxp = NULL, yaxp = NULL,
+            main = txt, cex.axis = 1.3, cex.lab = 1.2)
+  abline(h = ate, lty = 2, lwd = 1, col = "red")
+
+  plot_tbqte(res, utbqte = FALSE, plot.ci = TRUE, plot.relative = rel.scale,
+            pch = pch.sty, col.ci = "lightblue", col = "black",
+            xlim = NULL, ylim = yrange, 
+            xlab = xlab, ylab = NULL,
+            xaxs = "r", yaxs = "r",
+            xaxp = NULL, yaxp = NULL,
+            cex.axis = 1.3, cex.lab = 1.2)
+  abline(h = ate, lty = 2, lwd = 1, col = "red")
+
+  plot_tbqte(res, utbqte = TRUE, plot.ci = TRUE, plot.relative = rel.scale,
+            pch = pch.sty, col.ci = "salmon", col = "black",
+            xlim = NULL, ylim = yrange, 
+            xlab = xlab, ylab = NULL,
+            xaxs = "r", yaxs = "r",
+            xaxp = NULL, yaxp = NULL,
+            cex.axis = 1.3, cex.lab = 1.2)
+  abline(h = ate, lty = 2, lwd = 1, col = "red")
+  }
+}
+```
+
+**Figure S7.** BQTE, LTBQTE and UTBQTE functions for the Carrageenan data set. 
+The top row shows the values on the outcome scale.
+The bottom row shows the values on the relative scale. 
+The solid black lines shows the estimates and the band shows the 95% 
+confidence interval based on the bootstrap samples.
+The horizontal dashed red lines mark the average treatment effect.
+\vspace{0.5cm}
+
+```{r, echo = F, fig.width = 6, fig.height = 6}
+# Comparison of the Carrageenan data with different 
+# imputation of the censored values imputation 20 days 
+# Only difference between the data sets is that 
+# the censored observations on day 20 have been imputed to either 20 or to 30 days.
+
+filename = "https://raw.githubusercontent.com/mjpirinen/bqte/main/Carrageenan.csv"
+Carrageenan20 = read.csv(filename) #here censored values have been imputed as 20
+Treatment20 = subset(Carrageenan20, Carr == 1)$Duration
+Control20 = subset(Carrageenan20, Carr == 0)$Duration
+
+filename = "https://raw.githubusercontent.com/mjpirinen/bqte/main/Carrageenan30.csv"
+Carrageenan30 = read.csv(filename) #here censored values have been imputed as 30
+Treatment30 = subset(Carrageenan30, Carr == 1)$Duration
+Control30 = subset(Carrageenan30, Carr == 0)$Duration
+
+set.seed(4)
+#Use more bootstrap samples to ensure max accuracy (20000 while default = 2000)
+res20.bqte = bqte(Treatment = Treatment20, Control = Control20, 
+                B = 20000, at = c(3:19), verbose = F) 
+res30.bqte = bqte(Treatment = Treatment30, Control = Control30, 
+                  B = 20000, at = c(3:19), verbose = F)
+
+par(mfrow = c(1,1))
+plot (res20.bqte$at, res20.bqte$bqte, type ="l", xlim = c(0,20), 
+      yaxp = c(-10, 0, 5), xaxs = "i",
+      ylab = "BQTE (Days)", 
+      xlab = "Days in controls")
+lines(res30.bqte$at, res30.bqte$bqte, lty = 2, col = "red")
+legend("bottomleft", col = c("black","red"), lty = c(1,2), 
+       leg = c("cens. to 20", "cens. to 30"))
+# Conclusion: 
+# No difference observed due to imputation in the range considered here.
+```
+
+
+**Figure S8.** Effect of imputation of the censored observations in the Carrageenan data set. The continuous black line shows the BQTE function when the censored observations
+were imputed using the value of 20 days. 
+The dashed red line shows the BQTE function when the censored observations
+were imputed using the value of 30 days. In this calculation, we used B = 20 000 
+bootstrap samples to ensure stable estimates. 
+There is only a very small difference between 
+the curves at the right-hand side, 
+indicating that the curves are robust to the type of imputation applied in this case.  
