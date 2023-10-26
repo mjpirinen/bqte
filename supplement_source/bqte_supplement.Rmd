@@ -1,18 +1,33 @@
 ---
-title: 'Supplementary material of "Estimating quantile treatment effect on the original scale of the outcome variable: a case study of common cold treatments"' 
+title: 'Supplementary Information of "Estimating quantile treatment effect on the original scale of the outcome variable: a case study of common cold treatments"' 
 author: | 
  | Harri Hemilä and Matti Pirinen 
  | University of Helsinki
 output:
   pdf_document: default
   html_document: default
-date: "2023-06-28"
+date: "2023-10-20"
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-source("bqte_functions.R")
+source("../bqte_functions.R")
 ```
+
+# Contents
+
+   1. Interpretation of BQTE\
+   1.1 When does BQTE estimate an individual-level treatment effect?\
+   1.2 Bounds on the individual-level treatment effect\
+   1.3 Variance of the individual-level treatment effect\
+   2. Validating the `bqte` function \
+   2.1 Generating continuous example data\
+   2.2 The range of valid estimates\
+   2.3 The number of quantile points used in estimation\
+   2.4 Magnitude of estimation error and coverage of confidence intervals in discrete data\
+   
+   3. Source of data of the included examples\
+   4. Supplementary figures of real data sets\
 
 
 # 1. Interpretation of BQTE
@@ -243,7 +258,8 @@ probability $\mu(A) = \mu(A^*) = F(x).$
 Intuitively, among all events with the same 
 probability, the event $A^*$ is the one with the smallest expected value of $X^*$.
 To formally prove this, note that for all $\omega \in A \backslash A^*$, 
-$X^*(\omega) > {F^*}^{-1}(F(x))$ and hence
+$X^*(\omega) > {F^*}^{-1}(F(x))$ and that 
+$\mu(A \backslash A^*) = \mu(A^* \backslash A)$. Hence,
 \begin{eqnarray*}
 \text{E}\left(X^* \,|\, X \leq x \right) &=& \int_{A}x^*d\mu(x^*) \\
 &=& \int_{A\cap A^*}x^*d\mu(x^*) +  \int_{A\backslash A^*}x^*d\mu(x^*) \\
@@ -270,7 +286,7 @@ correlation $r = \text{cor}(X^*,X)$ and variance $v = \text{var}(X)$ of the untr
 and $v^* = \text{var}(X^*)$ of the treated population as follows
 \begin{eqnarray*}
 \text{var}(X^*-X) &=& v + v^* - 2\,\text{cov}(X^*,X)\\
-&=& v + v^* - 2\,r\, \sqrt{v\,v^*}.
+&=& v + v^* - 2\,r\, \sqrt{v \cdot v^*}.
 \end{eqnarray*}
 Thus, the variance of the treatment effect is the smallest possible when $r=1$,
 in which case the treatment preserves order, and is the largest possible when 
@@ -281,9 +297,9 @@ a linear relationship between the treated and untreated outcome values
 is the most conservative example of treatment in the sense of
 minimizing the variance of the treatment effect in the population.
 
+\newpage
 
-
-# 2. Testing the `bqte( )` function to back-transform quantile treatment effect
+# 2. Validating the `bqte` function 
 
 Let's test `bqte()` function by generating data for the treatment ($T$) group
 and the control ($C$) group.
@@ -417,7 +433,7 @@ For each $N$ and each quantile level, we then compute
 the empirical coverage of the 95%CIs
 and the empirical mean of the BQTE estimates 
 over the $R$ data sets. Results are show in Fig S2.
-
+\newpage
 ```{r, echo = FALSE}
 qte.conf = 0.95
 Ns = c(50, 500)
@@ -967,7 +983,7 @@ for(data.set in c(1)){
   # Data set 1, Mossad data
   if(data.set == 1){
     #filename = "https://raw.githubusercontent.com/mjpirinen/qte-by-outcome/main/Mossad.csv"
-    filename = "Mossad.csv"
+    filename = "../Mossad.csv"
     title.lab = "Mossad"
     yrange.d = c(-10, 0)
     yrange.r = c(-80,0)
@@ -979,7 +995,7 @@ for(data.set in c(1)){
   # Data set 2, Zinc acetat data
   if(data.set == 2){
     #filename = "https://raw.githubusercontent.com/mjpirinen/qte-by-outcome/main/ZnAcet.csv"
-    filename = "ZnAcet.csv"
+    filename = "../ZnAcet.csv"
     title.lab = "Zinc acetat"
     yrange.d = c(-8, 0.5)
     yrange.r = c(-60,0)
@@ -991,7 +1007,7 @@ for(data.set in c(1)){
   # Data set 3, carrageenan data
   if(data.set == 2){
     #filename = "https://raw.githubusercontent.com/mjpirinen/qte-by-outcome/main/Carrageenan.csv"
-    filename = "Carrageenan.csv"
+    filename = "../Carrageenan.csv"
     title.lab = "Carrageenan"
     yrange.d = c(-10, 1.5)
     yrange.r = c(-70,30)
@@ -1067,7 +1083,7 @@ for(data.set in c(2)){
   # Data set 1, Mossad data
   if(data.set == 1){
     #filename = "https://raw.githubusercontent.com/mjpirinen/qte-by-outcome/main/Mossad.csv"
-    filename = "Mossad.csv"
+    filename = "../Mossad.csv"
     title.lab = "Mossad"
     yrange.d = c(-10, 0)
     yrange.r = c(-80,0)
@@ -1079,7 +1095,7 @@ for(data.set in c(2)){
   # Data set 2, Zinc acetat data
   if(data.set == 2){
     #filename = "https://raw.githubusercontent.com/mjpirinen/qte-by-outcome/main/ZnAcet.csv"
-    filename = "ZnAcet.csv"
+    filename = "../ZnAcet.csv"
     title.lab = "Zinc acetat"
     yrange.d = c(-8, 0.5)
     yrange.r = c(-60,0)
@@ -1091,7 +1107,7 @@ for(data.set in c(2)){
   # Data set 3, carrageenan data
   if(data.set == 3){
     #filename = "https://raw.githubusercontent.com/mjpirinen/qte-by-outcome/main/Carrageenan.csv"
-    filename = "Carrageenan.csv"
+    filename = "../Carrageenan.csv"
     title.lab = "Carrageenan"
     yrange.d = c(-10, 1.5)
     yrange.r = c(-70,30)
@@ -1168,7 +1184,7 @@ for(data.set in c(3)){
   # Data set 1, Mossad data
   if(data.set == 1){
     #filename = "https://raw.githubusercontent.com/mjpirinen/qte-by-outcome/main/Mossad.csv"
-    filename = "Mossad.csv"
+    filename = "../Mossad.csv"
     title.lab = "Mossad"
     yrange.d = c(-10, 0)
     yrange.r = c(-80,0)
@@ -1180,7 +1196,7 @@ for(data.set in c(3)){
   # Data set 2, Zinc acetat data
   if(data.set == 2){
     #filename = "https://raw.githubusercontent.com/mjpirinen/qte-by-outcome/main/ZnAcet.csv"
-    filename = "ZnAcet.csv"
+    filename = "../ZnAcet.csv"
     title.lab = "Zinc acetat"
     yrange.d = c(-8, 0.5)
     yrange.r = c(-60,0)
@@ -1192,7 +1208,7 @@ for(data.set in c(3)){
   # Data set 3, carrageenan data
   if(data.set == 3){
     #filename = "https://raw.githubusercontent.com/mjpirinen/qte-by-outcome/main/Carrageenan.csv"
-    filename = "Carrageenan.csv"
+    filename = "../Carrageenan.csv"
     title.lab = "Carrageenan"
     yrange.d = c(-10, 1.5)
     yrange.r = c(-70,30)
