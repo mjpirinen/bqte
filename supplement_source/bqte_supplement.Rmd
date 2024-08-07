@@ -1,12 +1,12 @@
 ---
-title: 'Supplementary Information of "Estimating quantile treatment effect on the original scale of the outcome variable: a case study of common cold treatments"' 
+title: 'Supplementary Material of "Estimating quantile treatment effect on the original scale of the outcome variable: a case study of common cold treatments"' 
 author: | 
  | Harri Hemilä and Matti Pirinen 
  | University of Helsinki
 output:
   pdf_document: default
   html_document: default
-date: "2023-10-20"
+date: "2024-06-17"
 ---
 
 ```{r setup, include=FALSE}
@@ -27,7 +27,7 @@ source("../bqte_functions.R")
    2.4 Magnitude of estimation error and coverage of confidence intervals in discrete data\
    
    3. Source of data of the included examples\
-   4. Supplementary figures of real data sets\
+   4. Missing data in the Carrageenan data sets\
 
 
 # 1. Interpretation of BQTE
@@ -234,9 +234,12 @@ an upper bound for UTATE by
 \text{UTBQTE}(x) &=& \text{E}\left(X^* \,|\, X^* \geq {F^*}^{-1}(F(x)) \right) - \text{E}\left(X \,|\, X \geq x \right).
 \end{eqnarray*}
 
-Thus, LTBQTE (UTBQTE) is the difference in the averages of the treatment and control populations when
-the average is computed for the same proportion of the populations from the lower (upper) tail.
-Note that LTBQTE($x$) approaches ATE as $x$ gets large while UTBQTE($x$) approaches ATE as $x$ gets small.
+Thus, LTBQTE (UTBQTE) is the difference in the expected values 
+of the treatment and control populations when
+the two expectations are computed for the same proportion of the 
+population from the lower (upper) tail.
+Note that LTBQTE($x$) approaches ATE as $x$ gets large while UTBQTE($x$) 
+approaches ATE as $x$ gets small.
 Simple estimators to estimate $\text{LTBQTE}(x)$ and 
 $\text{UTBQTE}(x)$ result by replacing the expectations by the 
 numerical averages.
@@ -973,311 +976,15 @@ in panel B either overlap with the target value or remain above the target value
 **Carrageenan studies.** The data are from page 3 of the Supplementary file of
 
 <https://doi.org/10.1002/prp2.810>
+
+The data files used in this study are available at GitHub:
+
+<https://github.com/mjpirinen/bqte/>
 \newpage
 
 
-# 4. Supplementary figures of real data sets
+# 4. Missing data in the Carrageenan data sets
 
-```{r echo = F}
-for(data.set in c(1)){
-  # Data set 1, Mossad data
-  if(data.set == 1){
-    #filename = "https://raw.githubusercontent.com/mjpirinen/qte-by-outcome/main/Mossad.csv"
-    filename = "../Mossad.csv"
-    title.lab = "Mossad"
-    yrange.d = c(-10, 0)
-    yrange.r = c(-80,0)
-    dat = read.csv(filename)
-    duration = dat$Duration
-    status = dat$Zinc
-  }
-  
-  # Data set 2, Zinc acetat data
-  if(data.set == 2){
-    #filename = "https://raw.githubusercontent.com/mjpirinen/qte-by-outcome/main/ZnAcet.csv"
-    filename = "../ZnAcet.csv"
-    title.lab = "Zinc acetat"
-    yrange.d = c(-8, 0.5)
-    yrange.r = c(-60,0)
-    dat = read.csv(filename)
-    duration = dat$Duration
-    status = dat$Zinc
-  }
-  
-  # Data set 3, carrageenan data
-  if(data.set == 2){
-    #filename = "https://raw.githubusercontent.com/mjpirinen/qte-by-outcome/main/Carrageenan.csv"
-    filename = "../Carrageenan.csv"
-    title.lab = "Carrageenan"
-    yrange.d = c(-10, 1.5)
-    yrange.r = c(-70,30)
-    dat = read.csv(filename)
-    duration = dat$Duration
-    status = dat$Carr
-  }
-
-Treatment = duration[status == 1]
-Control = duration[status == 0]
-
-res = bqte(Treatment, Control, at = NULL, 
-           bqte.conf = 0.95, B = 2000, 
-           K = length(Control), bagging = TRUE,
-           tails = TRUE,
-           verbose = FALSE)
-#res
-
-xlab = "Days in controls"
-pch.sty = NULL
-par(mfrow = c(2,3))
-for(rel.scale in c(FALSE,TRUE)){
-
-  ate = mean(Treatment) - mean(Control)
-  txt = title.lab
-  yrange = yrange.d
-  
-  if(rel.scale) {
-    ate = 100*ate/mean(Control)
-    txt = ""
-    yrange = yrange.r
-  }
-  plot_bqte(res, plot.ci = TRUE, plot.rbqte = rel.scale,
-            pch = pch.sty, col = "black", col.ci = "gray",
-            xlim = NULL, ylim = yrange, 
-            xlab = xlab, ylab = NULL,
-            xaxs = "r", yaxs = "r",
-            xaxp = NULL, yaxp = NULL,
-            main = txt, cex.axis = 1.3, cex.lab = 1.2)
-  abline(h = ate, lty = 2, lwd = 1, col = "red")
-
-  plot_tbqte(res, utbqte = FALSE, plot.ci = TRUE, plot.relative = rel.scale,
-            pch = pch.sty, col.ci = "lightblue", col = "black",
-            xlim = NULL, ylim = yrange, 
-            xlab = xlab, ylab = NULL,
-            xaxs = "r", yaxs = "r",
-            xaxp = NULL, yaxp = NULL,
-            cex.axis = 1.3, cex.lab = 1.2)
-  abline(h = ate, lty = 2, lwd = 1, col = "red")
-
-  plot_tbqte(res, utbqte = TRUE, plot.ci = TRUE, plot.relative = rel.scale,
-            pch = pch.sty, col.ci = "salmon", col = "black",
-            xlim = NULL, ylim = yrange, 
-            xlab = xlab, ylab = NULL,
-            xaxs = "r", yaxs = "r",
-            xaxp = NULL, yaxp = NULL,
-            cex.axis = 1.3, cex.lab = 1.2)
-  abline(h = ate, lty = 2, lwd = 1, col = "red")
-  }
-}
-```
-
-**Figure S5.** BQTE, LTBQTE and UTBQTE functions for the Mossad data set. 
-The top row shows the values on the outcome scale.
-The bottom row shows the values on the relative scale. 
-The solid black lines shows the estimates and the band shows the 95% 
-confidence interval based on the bootstrap samples.
-The horizontal dashed red lines mark the average treatment effect.
-\vspace{0.5cm}
-
-```{r echo = F}
-for(data.set in c(2)){
-  # Data set 1, Mossad data
-  if(data.set == 1){
-    #filename = "https://raw.githubusercontent.com/mjpirinen/qte-by-outcome/main/Mossad.csv"
-    filename = "../Mossad.csv"
-    title.lab = "Mossad"
-    yrange.d = c(-10, 0)
-    yrange.r = c(-80,0)
-    dat = read.csv(filename)
-    duration = dat$Duration
-    status = dat$Zinc
-  }
-  
-  # Data set 2, Zinc acetat data
-  if(data.set == 2){
-    #filename = "https://raw.githubusercontent.com/mjpirinen/qte-by-outcome/main/ZnAcet.csv"
-    filename = "../ZnAcet.csv"
-    title.lab = "Zinc acetat"
-    yrange.d = c(-8, 0.5)
-    yrange.r = c(-60,0)
-    dat = read.csv(filename)
-    duration = dat$Duration
-    status = dat$Zinc
-  }
-  
-  # Data set 3, carrageenan data
-  if(data.set == 3){
-    #filename = "https://raw.githubusercontent.com/mjpirinen/qte-by-outcome/main/Carrageenan.csv"
-    filename = "../Carrageenan.csv"
-    title.lab = "Carrageenan"
-    yrange.d = c(-10, 1.5)
-    yrange.r = c(-70,30)
-    dat = read.csv(filename)
-    duration = dat$Duration
-    status = dat$Carr
-  }
-
-Treatment = duration[status == 1]
-Control = duration[status == 0]
-
-res = bqte(Treatment, Control, at = NULL, 
-           bqte.conf = 0.95, B = 2000, 
-           K = length(Control), bagging = TRUE,
-           tails = TRUE,
-           verbose = FALSE)
-#res
-
-xlab = "Days in controls"
-pch.sty = NULL
-par(mfrow = c(2,3))
-for(rel.scale in c(FALSE,TRUE)){
-
-  ate = mean(Treatment) - mean(Control)
-  txt = title.lab
-  yrange = yrange.d
-  
-  if(rel.scale) {
-    ate = 100*ate/mean(Control)
-    txt = ""
-    yrange = yrange.r
-  }
-  plot_bqte(res, plot.ci = TRUE, plot.rbqte = rel.scale,
-            pch = pch.sty, col = "black", col.ci = "gray",
-            xlim = NULL, ylim = yrange, 
-            xlab = xlab, ylab = NULL,
-            xaxs = "r", yaxs = "r",
-            xaxp = NULL, yaxp = NULL,
-            main = txt, cex.axis = 1.3, cex.lab = 1.2)
-  abline(h = ate, lty = 2, lwd = 1, col = "red")
-
-  plot_tbqte(res, utbqte = FALSE, plot.ci = TRUE, plot.relative = rel.scale,
-            pch = pch.sty, col.ci = "lightblue", col = "black",
-            xlim = NULL, ylim = yrange, 
-            xlab = xlab, ylab = NULL,
-            xaxs = "r", yaxs = "r",
-            xaxp = NULL, yaxp = NULL,
-            cex.axis = 1.3, cex.lab = 1.2)
-  abline(h = ate, lty = 2, lwd = 1, col = "red")
-
-  plot_tbqte(res, utbqte = TRUE, plot.ci = TRUE, plot.relative = rel.scale,
-            pch = pch.sty, col.ci = "salmon", col = "black",
-            xlim = NULL, ylim = yrange, 
-            xlab = xlab, ylab = NULL,
-            xaxs = "r", yaxs = "r",
-            xaxp = NULL, yaxp = NULL,
-            cex.axis = 1.3, cex.lab = 1.2)
-  abline(h = ate, lty = 2, lwd = 1, col = "red")
-  }
-}
-```
-
-**Figure S6.** BQTE, LTBQTE and UTBQTE functions for the Zinc acetat data set. 
-The top row shows the values on the outcome scale.
-The bottom row shows the values on the relative scale. 
-The solid black lines shows the estimates and the band shows the 95% 
-confidence interval based on the bootstrap samples.
-The horizontal dashed red lines mark the average treatment effect.
-\vspace{0.5cm}
-
-
-```{r echo = F}
-for(data.set in c(3)){
-  # Data set 1, Mossad data
-  if(data.set == 1){
-    #filename = "https://raw.githubusercontent.com/mjpirinen/qte-by-outcome/main/Mossad.csv"
-    filename = "../Mossad.csv"
-    title.lab = "Mossad"
-    yrange.d = c(-10, 0)
-    yrange.r = c(-80,0)
-    dat = read.csv(filename)
-    duration = dat$Duration
-    status = dat$Zinc
-  }
-  
-  # Data set 2, Zinc acetat data
-  if(data.set == 2){
-    #filename = "https://raw.githubusercontent.com/mjpirinen/qte-by-outcome/main/ZnAcet.csv"
-    filename = "../ZnAcet.csv"
-    title.lab = "Zinc acetat"
-    yrange.d = c(-8, 0.5)
-    yrange.r = c(-60,0)
-    dat = read.csv(filename)
-    duration = dat$Duration
-    status = dat$Zinc
-  }
-  
-  # Data set 3, carrageenan data
-  if(data.set == 3){
-    #filename = "https://raw.githubusercontent.com/mjpirinen/qte-by-outcome/main/Carrageenan.csv"
-    filename = "../Carrageenan.csv"
-    title.lab = "Carrageenan"
-    yrange.d = c(-10, 1.5)
-    yrange.r = c(-70,30)
-    dat = read.csv(filename)
-    duration = dat$Duration
-    status = dat$Carr
-  }
-
-Treatment = duration[status == 1]
-Control = duration[status == 0]
-
-res = bqte(Treatment, Control, at = NULL, 
-           bqte.conf = 0.95, B = 2000, 
-           K = length(Control), bagging = TRUE,
-           tails = TRUE,
-           verbose = FALSE)
-#res
-
-xlab = "Days in controls"
-pch.sty = NULL
-par(mfrow = c(2,3))
-for(rel.scale in c(FALSE,TRUE)){
-
-  ate = mean(Treatment) - mean(Control)
-  txt = title.lab
-  yrange = yrange.d
-  
-  if(rel.scale) {
-    ate = 100*ate/mean(Control)
-    txt = ""
-    yrange = yrange.r
-  }
-  plot_bqte(res, plot.ci = TRUE, plot.rbqte = rel.scale,
-            pch = pch.sty, col = "black", col.ci = "gray",
-            xlim = NULL, ylim = yrange, 
-            xlab = xlab, ylab = NULL,
-            xaxs = "r", yaxs = "r",
-            xaxp = NULL, yaxp = NULL,
-            main = txt, cex.axis = 1.3, cex.lab = 1.2)
-  abline(h = ate, lty = 2, lwd = 1, col = "red")
-
-  plot_tbqte(res, utbqte = FALSE, plot.ci = TRUE, plot.relative = rel.scale,
-            pch = pch.sty, col.ci = "lightblue", col = "black",
-            xlim = NULL, ylim = yrange, 
-            xlab = xlab, ylab = NULL,
-            xaxs = "r", yaxs = "r",
-            xaxp = NULL, yaxp = NULL,
-            cex.axis = 1.3, cex.lab = 1.2)
-  abline(h = ate, lty = 2, lwd = 1, col = "red")
-
-  plot_tbqte(res, utbqte = TRUE, plot.ci = TRUE, plot.relative = rel.scale,
-            pch = pch.sty, col.ci = "salmon", col = "black",
-            xlim = NULL, ylim = yrange, 
-            xlab = xlab, ylab = NULL,
-            xaxs = "r", yaxs = "r",
-            xaxp = NULL, yaxp = NULL,
-            cex.axis = 1.3, cex.lab = 1.2)
-  abline(h = ate, lty = 2, lwd = 1, col = "red")
-  }
-}
-```
-
-**Figure S7.** BQTE, LTBQTE and UTBQTE functions for the Carrageenan data set. 
-The top row shows the values on the outcome scale.
-The bottom row shows the values on the relative scale. 
-The solid black lines shows the estimates and the band shows the 95% 
-confidence interval based on the bootstrap samples.
-The horizontal dashed red lines mark the average treatment effect.
-\vspace{0.5cm}
 
 ```{r, echo = F, fig.width = 6, fig.height = 6}
 # Comparison of the Carrageenan data with different 
@@ -1315,10 +1022,10 @@ legend("bottomleft", col = c("black","red"), lty = c(1,2),
 ```
 
 
-**Figure S8.** Effect of imputation of the censored observations in the Carrageenan data set. The continuous black line shows the BQTE function when the censored observations
+**Figure S5.** Effect of imputation of the censored observations in the Carrageenan data set. The continuous black line shows the BQTE function when the censored observations
 were imputed using the value of 20 days. 
 The dashed red line shows the BQTE function when the censored observations
-were imputed using the value of 30 days. In this calculation, we used B = 20 000 
+were imputed using the value of 30 days. In this calculation, we used B = 20,000 
 bootstrap samples to ensure stable estimates. 
 There is only a very small difference between 
 the curves at the right-hand side, 
