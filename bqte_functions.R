@@ -4,12 +4,12 @@
 # BQTE is a transformation of QTE as a function of the outcome value in control group. 
 # Uses bootstrap for estimating uncertainty.
 
-# Matti Pirinen & Harri Hemila, version June 26, 2023.
+# Matti Pirinen & Harri Hemila, version June 17, 2024.
 
 # The source code in this file is published under 
 # the MIT license listed at the end of this file.
 
-# Contains 8 functions:
+# Contains 9 functions:
 #
 # bqte(Treatment, Control, at = NULL, 
 #      bqte.conf = 0.95, B = 2000, 
@@ -34,6 +34,23 @@
 #            cex = 1, cex.axis = 1, cex.lab = 1, 
 #            main ="", lwd = 1)
 #
+# plot_tbqte_both(
+#     x, 
+#     x.utbqte = NULL, x.ltbqte = NULL,
+#     plot.ci = TRUE, plot.relative = FALSE,
+#     pch.utbqte = 25, pch.ltbqte = 24, 
+#     col.utbqte = "blue", 
+#     col.ltbqte = "purple", 
+#     col.utbqte.ci = "blue",
+#     col.ltbqte.ci = "purple",
+#     jitter = c(0,0),
+#     xlim = NULL, ylim = NULL, 
+#     xlab = NULL, ylab = NULL,
+#     xaxs = "r", yaxs = "r",
+#     xaxp = NULL, yaxp = NULL,
+#     cex = 1, cex.axis = 1, cex.lab = 1, 
+#     main ="", lwd = 1)
+# 
 # qte(Treatment, Control, at = NULL, 
 #     qte.conf = 0.95, B = 2000, 
 #     bagging = TRUE, verbose = TRUE)
@@ -374,7 +391,7 @@ plot_tbqte <- function(x, utbqte = TRUE, plot.ci = TRUE, plot.relative = FALSE,
                       cex = 1, cex.axis = 1, cex.lab = 1, 
                       main ="", lwd = 1){
   
-  # Plot tail BQTEs on direct or relative scale.
+  # Plot one of the tail BQTEs on direct or relative scale.
   # For definitions of these measures, see "bqte_supplement.pdf"
   # Either upper (UTBQTE) or lower (LTBQTE) tail can be considered.
   #INPUT:
@@ -443,6 +460,116 @@ plot_tbqte <- function(x, utbqte = TRUE, plot.ci = TRUE, plot.relative = FALSE,
   else{
     lines(x$at, X[,1], col = col, lty = 1, lwd = lwd)}
 }
+
+
+plot_tbqte_both <- function(
+    x, 
+    x.utbqte = NULL, x.ltbqte = NULL,
+    plot.ci = TRUE, plot.relative = FALSE,
+    pch.utbqte = 25, pch.ltbqte = 24, 
+    col.utbqte = "blue", 
+    col.ltbqte = "purple", 
+    col.utbqte.ci = "blue",
+    col.ltbqte.ci = "purple",
+    jitter = c(0,0),
+    xlim = NULL, ylim = NULL, 
+    xlab = NULL, ylab = NULL,
+    xaxs = "r", yaxs = "r",
+    xaxp = NULL, yaxp = NULL,
+    cex = 1, cex.axis = 1, cex.lab = 1, 
+    main ="", lwd = 1){
+  
+  # Plot in the same figure both UTBQTEs and LTBQTEs on direct or relative scale.
+  # For definitions of these measures, see "bqte_supplement.pdf"
+  #INPUT:
+  # 'x' data.frame returned by function bqte( ,tails = TRUE)
+  # 'x.utbqte', control group's outcome value from which utbqte is plotted towards the upper tail
+  #             if NULL, then the lowest point of data in 'x' is used
+  # 'x.ltbqte', control group's outcome value from which ltbqte is plotted towards the lower tail
+  #             if NULL, then highest point of data in 'x' is used
+  # plot.relative, if TRUE, plots relative TBQTEs, otherwise plots direct TBQTEs
+  # plot.ci, if TRUE, plots confidence intervals around estimates using colors 
+  #          col.utbqte.ci and col.ltbqte.ci
+  # jitter, vector of length 2, gives the horizontal offsets for points to avoid overlaps 
+  #         between plotted LTBQTE and UTBQTE estimates and intervals.
+  #         1st value is offset for UTBQTE, 2nd value is offset for LTBQTE
+  #         default is (0,0), i.e., no offset
+  # pch.utbqte, pch.ltbqte, col.utbqte, col.ltbqte, xlim, ylim, xlab, ylab, xaxs, yaxs, xaxp, yaxp
+  # cex, cex.axis, cex.lab, main, lwd: 
+  #      standard plotting parameters with sensible defaults.
+  # If pch.utbqte = NULL / pch.ltbqte = NULL then the corresponding estimates are shown by a line
+  #  and the confidence intervals are shown as a band around the estimates.
+  
+  if(plot.relative){
+      X = x[,c("rutbqte","rutbqte.low","rutbqte.up","rltbqte","rltbqte.low","rltbqte.up")]}
+    else{
+      X = x[,c("utbqte","utbqte.low","utbqte.up","ltbqte","ltbqte.low","ltbqte.up")]}
+
+  #Use percentages for relative effects
+  if(plot.relative) X = 100*X
+  
+  if(is.null(xlim)) {
+    xlim = range(x$at) + c(-1,1) * 0.05 * diff(range(x$at))}
+  if(is.null(ylim)) {
+    ylim = range(as.vector(X[,c(2,3,5,6)])) + c(-1,1) * 0.05 * diff(range(as.vector(X[,c(2,3,5,6)])))}
+  
+  if(is.null(xlab)) xlab = "Outcome in controls"
+  if(is.null(ylab)){
+    lab = c("L/UTBQTE")
+    if(!plot.relative) ylab = lab
+    else ylab = paste("Relative",lab,"(%)")
+  }
+  
+  plot(NULL, 
+       xlim = xlim, ylim = ylim,
+       xlab = xlab, ylab = ylab,
+       xaxs = xaxs, yaxs = yaxs,
+       xaxp = xaxp, yaxp = yaxp,
+       main = main, cex.lab = cex.lab, 
+       cex.axis = cex.axis)
+  grid()
+  abline(h = 0, lty = 3, lwd = lwd)
+  
+  if(is.null(x.utbqte)) x.utbqte = min(x$at)
+  if(is.null(x.ltbqte)) x.ltbqte = max(x$at)
+  u.ind = (x$at >= x.utbqte)
+  l.ind = (x$at <= x.ltbqte)
+  
+  #add intervals
+  if(plot.ci){
+    if(!is.null(pch.utbqte)) {
+      arrows(x$at[u.ind]+jitter[1], X[u.ind,2],
+             x$at[u.ind]+jitter[1], X[u.ind,3], 
+             col = col.utbqte.ci, code = 3, angle = 90, length = 0.0, lwd = lwd)}
+    else{
+      polygon(c(x$at[u.ind],rev(x$at[u.ind])), 
+              c(X[u.ind,2], rev(X[u.ind,3])), 
+              col = col.utbqte.ci, border = NA)
+    }
+    if(!is.null(pch.ltbqte)) {
+      arrows(x$at[l.ind]+jitter[2], X[l.ind,5],
+             x$at[l.ind]+jitter[2], X[l.ind,6], 
+             col = col.ltbqte.ci, code = 3, angle = 90, length = 0.0, lwd = lwd)}
+    else{
+      polygon(c(x$at[l.ind],rev(x$at[l.ind])), 
+              c(X[l.ind,5], rev(X[l.ind,6])), 
+              col = col.ltbqte.ci, border = NA)
+    }
+  }
+  
+  #add points
+  if(!is.null(pch.utbqte)) {
+    points(x$at[u.ind]+jitter[1], X[u.ind,1], pch = pch.utbqte, col = col.utbqte, cex = cex)}
+  else{
+    lines(x$at[u.ind], X[u.ind,1], col = col.utbqte, lty = 1, lwd = lwd)}
+  
+  if(!is.null(pch.ltbqte)) {
+    points(x$at[l.ind]+jitter[2], X[l.ind,4], pch = pch.ltbqte, col = col.ltbqte, cex = cex)}
+  else{
+    lines(x$at[l.ind], X[l.ind,4], col = col.ltbqte, lty = 1, lwd = lwd)}
+  
+}
+
 
 
 qte <- function(Treatment, Control, at = NULL, 
@@ -664,7 +791,7 @@ exact.bqte.discrete <- function(at, x, pr.con, pr.trt){
 
 #MIT License
 
-#Copyright (c) 2022,2023 Matti Pirinen, Harri Hemila
+#Copyright (c) 2022-2024 Matti Pirinen, Harri Hemila
 
 #Permission is hereby granted, free of charge, to any person obtaining a copy
 #of this software and associated documentation files (the "Software"), to deal
