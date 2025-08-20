@@ -1,0 +1,4 @@
+exportPattern("^[[:alpha:]]+")
+importFrom("graphics", "abline", "arrows", "grid", "lines", "points",
+                "polygon")
+importFrom("stats", "approx", "lm", "predict", "quantile")

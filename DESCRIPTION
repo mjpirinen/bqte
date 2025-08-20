@@ -1,0 +1,12 @@
+Package: bqte
+Type: Package
+Title: Quantile treatment effects (QTE) and back-transformed QTE (BQTE)
+Version: 0.9.0
+Authors@R: c(person("Matti", "Pirinen",role = c("aut", "cre"),
+      email = "matti.pirinen@helsinki.fi"),
+	person("Harri", "Hemila", role = c("aut")))
+Description: Computes QTEs and BQTEs and lower and upper tail BQTEs.
+License: MIT license (see LICENSE)
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.3.2
