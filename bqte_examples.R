@@ -20,7 +20,7 @@
 install.packages("devtools")
 library(devtools)
 install_github("mjpirinen/bqte")
-library(linemodels)
+library(bqte)
 #  If you can't get the above working, all functions are in a single R file,
 #  which you can also read in directly to R using command below
 # source("https://raw.githubusercontent.com/mjpirinen/bqte/main/R/bqte.R")
