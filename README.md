@@ -7,7 +7,7 @@ BQTE is a transformation of quantile treatment effect (QTE) that presents the QT
 
 See file bqte_examples.R for what the package does and how to install it.
 
-The source code is provided under an MIT license given in "bqte_functions.R".
+The source code is provided under an MIT license given in LICENSE.
 
 Contributors: Matti Pirinen & Harri Hemila
 
