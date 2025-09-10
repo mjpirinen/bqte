@@ -329,6 +329,9 @@ legend("bottomleft", col = c("black","red"), lty = c(1,2),
 ### Figure 1
 #
 
+plot.pdf = FALSE #set this to TRUE if you want a PDF file, otherwise plotted on screen
+if(plot.pdf) pdf("Fig1.pdf", width = 6.6, height = 4.6, pointsize = 9)
+
 filename.1 = "https://raw.githubusercontent.com/mjpirinen/bqte/main/data/Mossad.csv"
 Mossad = read.csv(filename.1)
 str(Mossad) # Check data looks OK.
@@ -370,15 +373,17 @@ yran = c(0,max(as.vector(pr[2:3,])))
 par(mfcol = c(2,2))
 bplot = barplot(rbind(pr[3,]-pr.t.chosen, pr.t.chosen), names.arg = as.integer(pr[1,]),
                 main = "Treatment group", ylab = "proportion", cex.names = cexnames,
-                ylim = yran, beside = FALSE, col= c("gray","gold"), xlab = "Days",
+                ylim = yran, beside = FALSE, col= c("gray","black"), xlab = "Days",
+                density = c(1000,30), angle = c(0,45),
                 cex.lab = cexlab, cex.axis = cexaxis, cex.main = cexmain)
-text(-2, 0.21, "A", pos = 1, cex = 2, xpd = NA)
+text(-3, 0.21, "A", pos = 1, cex = 2, xpd = NA)
 
 bplot = barplot(rbind(pr[2,]-pr.c.chosen, pr.c.chosen), names.arg = as.integer(pr[1,]),
                 main = "Control group", ylab = "proportion", cex.names = cexnames,
-                ylim = yran , beside = FALSE, col= c("gray","gold"), xlab = "Days",
+                ylim = yran , beside = FALSE, col= c("gray","black"), xlab = "Days",
+                density = c(1000,30), angle = c(0,45),
                 cex.lab = cexlab, cex.axis = cexaxis, cex.main = cexmain)
-text(-2, 0.21, "B", pos = 1, cex = 2, xpd = NA)
+text(-3, 0.21, "B", pos = 1, cex = 2, xpd = NA)
 
 Nt = length(Treatment)
 Nc = length(Control)
@@ -412,7 +417,7 @@ cexs = counts[counts > 0]
 cexs = 0.25 + (1.5)*(cexs-1)/max(cexs-1)
 kk = which(counts > 0, arr.ind = TRUE)
 points(at[kk[,"col"]],y.grid[kk[,"row"]], cex = cexs, col = "black", pch = 19)
-text(-1, 5.5, "C", pos = 1, cex = 2, xpd = NA)
+text(-2, 6.5, "C", pos = 1, cex = 2, xpd = NA)
 
 
 
@@ -429,9 +434,10 @@ plot_bqte(res.bqte, plot.rbqte = F,
           ylab = "BQTE (days)",
           xlab = "Days in controls", cex.lab = cexlab, cex.axis = cexaxis)
 abline(ate, 0, col = "black", lt = 1,  lw = 1) #Add ATE line
-text(-1, 5.5, "D", pos = 1, cex = 2, xpd = NA)
+text(-2, 6.5, "D", pos = 1, cex = 2, xpd = NA)
 title(main = "Estimates from bqte( ) function", cex = cexmain)
 
+if(plot.pdf) dev.off()
 
 #
 ##
@@ -445,6 +451,7 @@ title(main = "Estimates from bqte( ) function", cex = cexmain)
 # 3 = Carrageenan (Figure 4)
 # Figure size 900(width) x 636(height)
 data.set = 3
+plot.pdf = TRUE
 set.seed (18)
 
 # Data set 1, Mossad data
@@ -460,6 +467,7 @@ if(data.set == 1){
   dat = read.csv(filename)
   duration = dat$Duration
   status = dat$Zinc
+  output.file = "Fig2.pdf" #used only if plot.pdf == TRUE
 }
 
 # Data set 2, Zinc acetat data
@@ -473,21 +481,25 @@ if(data.set == 2){
   dat = read.csv(filename)
   duration = dat$Duration
   status = dat$Zinc
+  output.file = "Fig3.pdf" #used only if plot.pdf == TRUE
 }
 
 # Data set 3, carrageenan data
 if(data.set == 3){
-  filename = "https://raw.githubusercontent.com/mjpirinen/bqte/main/data/data/Carrageenan.csv"
+  filename = "https://raw.githubusercontent.com/mjpirinen/bqte/main/data/Carrageenan.csv"
   yrange.d = c(-10, 1.5)
   yrange.r = c(-70, 30)
   known.ate = c(-2.7, -23)
   at.value = 4:19
   label.coord = matrix(c(-0.5, 2.5, -0.5, 45), byrow = TRUE, ncol = 2)
-
   dat = read.csv(filename)
   duration = dat$Duration
   status = dat$Carr
+  output.file = "Fig4.pdf" #used only if plot.pdf == TRUE
 }
+
+if(plot.pdf) pdf(output.file, width = 6.6, height = 4.6, pointsize = 9)
+
 
 Treatment = duration[status == 1]
 Control = duration[status == 0]
@@ -565,7 +577,7 @@ for(rel.scale in c(FALSE,TRUE)){
 }
 
 
-
+if(plot.pdf) dev.off()
 
 #
 ##
